@@ -112,8 +112,11 @@
   /* Sidebar toggle button */
   #sidebar-toggle{display:none;position:absolute;top:12px;right:12px;z-index:300;background:var(--bg-panel);border:1px solid var(--border);color:var(--text);width:44px;height:44px;border-radius:8px;font-size:20px;cursor:pointer;font-family:inherit;line-height:1;-webkit-tap-highlight-color:transparent;}
   /* Canvas overlay for detail popups on mobile */
-  #canvas-overlay{display:none;position:absolute;bottom:16px;left:12px;right:12px;max-height:55vh;overflow-y:auto;background:rgba(17,24,39,0.96);backdrop-filter:blur(14px);border:1px solid var(--border);border-radius:10px;padding:18px 16px;z-index:90;font-size:13px;line-height:1.5;color:var(--text);-webkit-overflow-scrolling:touch;}
+  #canvas-overlay{display:none;position:fixed;bottom:12px;left:12px;right:12px;max-height:50vh;overflow-y:auto;background:rgba(17,24,39,0.96);backdrop-filter:blur(14px);border:1px solid var(--border);border-radius:10px;padding:18px 16px;z-index:250;font-size:13px;line-height:1.5;color:var(--text);-webkit-overflow-scrolling:touch;}
   #canvas-overlay.visible{display:block;}
+  #canvas-overlay .detail-box{margin-top:0;}
+  #canvas-overlay .title{font-size:14px;font-weight:700;color:var(--accent-2);}
+  #canvas-overlay .meta{font-size:10px;color:var(--text-dim);margin-bottom:6px;}
   #canvas-overlay .close-btn{position:sticky;top:0;float:right;background:var(--bg-panel-2);border:1px solid var(--border);color:var(--text);width:32px;height:32px;border-radius:6px;font-size:20px;cursor:pointer;line-height:1;padding:0;text-align:center;z-index:91;-webkit-tap-highlight-color:transparent;}
   #canvas-overlay .close-btn:hover{color:var(--text);background:var(--border);}
   #canvas-overlay h3{font-size:14px;font-weight:700;color:var(--accent-2);margin-bottom:8px;}
@@ -124,7 +127,7 @@
     aside#info-panel{display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:200;padding:60px 20px 20px;overflow-y:auto;-webkit-overflow-scrolling:touch;background:var(--bg-panel);}
     aside#info-panel.open{display:block;}
     aside#info-panel.open::before{content:'';position:fixed;top:0;left:0;right:0;height:50px;background:var(--bg-panel);z-index:1;}
-    #sidebar-toggle{display:block;}
+    #sidebar-toggle{display:block;position:fixed;top:auto;bottom:12px;right:12px;}
     header{padding:10px 14px;gap:10px;}
     header h1{font-size:14px;}
     header .subtitle{display:none;}
