@@ -776,8 +776,10 @@ scenes.problem={
     const hits=raycaster.intersectObjects(allMeshes);
     if(hits.length>0){
       const hat=hits[0].object.userData.hat;if(!hat)return;
+      const html=`<div class="detail-box"><div class="title">${hat.full}</div><div class="meta">${hat.category}</div><p>${hat.description}</p>${hat.replacement?`<div style="margin-top:8px;font-size:11px;color:var(--text-dim)"><strong style="color:var(--green-light)">System handles:</strong> ${hat.replacement.detail}</div>`:''}`;
       const slot=document.getElementById('detail-slot');
-      slot.innerHTML=`<div class="detail-box"><div class="title">${hat.full}</div><div class="meta">${hat.category}</div><p>${hat.description}</p>${hat.replacement?`<div style="margin-top:8px;font-size:11px;color:var(--text-dim)"><strong style="color:var(--green-light)">System handles:</strong> ${hat.replacement.detail}</div>`:''}`;
+      if(slot)slot.innerHTML=html;
+      if(window.innerWidth<=900)showOverlay(html);
     }
   }
 };
@@ -870,7 +872,8 @@ scenes.journey={
     panel.innerHTML=`<h2 style="color:#${topicData.color.toString(16).padStart(6,'0')}">${topicData.name}</h2><p class="lead">Month ${topicData.month} of the 12-month curriculum. ${pill}</p>
       ${ms.flag?`<div class="detail-box" style="border-left-color:#ef4444"><div style="color:#f87171;font-weight:600;font-size:12px">&#9888; Coach Flag</div><p style="margin-top:4px;font-size:11px">${ms.flag}</p></div>`:''}
       <h3>Subtopics (Level 2)</h3><ul style="margin-top:8px">${topicData.subtopics.map(s=>`<li><strong style="color:${s.current?'#fbbf24':'var(--text)'}">${s.name}</strong>${s.current?' <span class="pill yellow">Active</span>':''}<br><span style="color:var(--text-dim);font-size:10px">${s.focus.length} focus areas</span></li>`).join('')}</ul>
-      <button class="action-btn secondary small" onclick="scenes.journey.showOverview()">&larr; Back to Overview</button>`;
+      <button class="action-btn secondary small" onclick="scenes.journey.showOverview();scenes.journey._syncOverlay()">&larr; Back to Overview</button>`;
+    this._syncOverlay();
   },
 
   drillToSubtopic(subtopicData,topicData){
@@ -892,8 +895,9 @@ scenes.journey={
     setBreadcrumb(['Program',`M${topicData.month} ${topicData.name}`,subtopicData.name]);
     panel.innerHTML=`<h2 style="font-size:18px">${subtopicData.name}</h2><p class="lead">Subtopic under <strong>${topicData.name}</strong>. Three focus areas assigned at this level.</p>
       <h3>Focus Areas (Level 3)</h3>
-      ${subtopicData.focus.map(foc=>`<div class="resource-item" onclick="scenes.journey.drillToFocus('${foc.title.replace(/'/g,"\\'")}')" style="cursor:pointer"><div class="icon">${foc.type==='workbook'?'📓':foc.type==='test'?'📝':foc.type==='link'?'🔗':'📄'}</div><div class="info"><div class="title">${foc.title}${foc.current?' <span class="pill yellow" style="margin-left:4px">Active</span>':''}</div><div class="meta">${foc.type}</div></div></div>`).join('')}
-      <button class="action-btn secondary small" onclick="scenes.journey.drillToTopic(scenes.journey.activeTopic)">&larr; Back to ${topicData.name}</button>`;
+      ${subtopicData.focus.map(foc=>`<div class="resource-item" onclick="scenes.journey.drillToFocus('${foc.title.replace(/'/g,"\\'")}');scenes.journey._syncOverlay()" style="cursor:pointer"><div class="icon">${foc.type==='workbook'?'📓':foc.type==='test'?'📝':foc.type==='link'?'🔗':'📄'}</div><div class="info"><div class="title">${foc.title}${foc.current?' <span class="pill yellow" style="margin-left:4px">Active</span>':''}</div><div class="meta">${foc.type}</div></div></div>`).join('')}
+      <button class="action-btn secondary small" onclick="scenes.journey.drillToTopic(scenes.journey.activeTopic);scenes.journey._syncOverlay()">&larr; Back to ${topicData.name}</button>`;
+    this._syncOverlay();
   },
 
   drillToFocus(focusTitle){
@@ -913,7 +917,13 @@ scenes.journey={
       ${foc.detail?`<div class="detail-box"><p style="font-size:12px">${foc.detail}</p></div>`:''}
       ${treeHTML}
       <h3>What's in a Focus Area</h3><p style="font-size:11px">Every focus area is a unit of work: a worksheet, workbook chapter, test, or external resource. The rules engine assigns them based on <code>topic &times; industry &times; stage</code> matching.</p>
-      <button class="action-btn secondary small" onclick="scenes.journey.drillToSubtopic(scenes.journey.activeSubtopic,scenes.journey.activeTopic)">&larr; Back to ${subtopicData.name}</button>`;
+      <button class="action-btn secondary small" onclick="scenes.journey.drillToSubtopic(scenes.journey.activeSubtopic,scenes.journey.activeTopic);scenes.journey._syncOverlay()">&larr; Back to ${subtopicData.name}</button>`;
+    this._syncOverlay();
+  },
+
+  // Sync panel content to overlay on mobile
+  _syncOverlay(){
+    if(window.innerWidth<=900)setTimeout(()=>showOverlay(panel.innerHTML),30);
   },
 
   _buildDecisionTreeVisual(){
@@ -961,10 +971,7 @@ scenes.journey={
       const th=raycaster.intersectObjects(topMeshes);
       if(th.length>0){this.drillToTopic(th[0].object.userData.topicNode.topic);hit=true;}
     }
-    // On mobile, show the panel content as an overlay since sidebar is hidden
-    if(hit&&window.innerWidth<=900){
-      setTimeout(()=>showOverlay(panel.innerHTML),50);
-    }
+    // _syncOverlay is called inside each drill function, no need to duplicate here
   },
   exit(){this.clearDrilldown();}
 };
@@ -1766,13 +1773,9 @@ init();
         mouse.x=((t.clientX-rect.left)/rect.width)*2-1;
         mouse.y=-((t.clientY-rect.top)/rect.height)*2+1;
         raycaster.setFromCamera(mouse,camera);
+        // Scene onClick handlers are responsible for calling showOverlay on mobile.
+        // Do NOT call showOverlay here — it causes double-fire and prevents closing.
         currentScene.onClick(raycaster);
-        setTimeout(()=>{
-          const detail=document.getElementById('detail-slot')||document.getElementById('hat-detail');
-          if(detail&&detail.innerHTML.trim()&&window.innerWidth<=900){
-            showOverlay(detail.innerHTML);
-          }
-        },50);
       }
     }
     pinchDist=0;
