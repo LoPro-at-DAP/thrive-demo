@@ -1,0 +1,1340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Thrive AI — Interactive Architecture Walkthrough</title>
+<style>
+  :root {
+    --bg:#0a0e1a;--bg-panel:#111827;--bg-panel-2:#1f2937;--bg-panel-3:#2d3748;
+    --border:#374151;--border-light:#4b5563;--text:#f3f4f6;--text-dim:#9ca3af;
+    --text-dimmer:#6b7280;--accent:#3b82f6;--accent-2:#60a5fa;--accent-3:#93c5fd;
+    --green:#10b981;--green-light:#34d399;--yellow:#f59e0b;--yellow-light:#fbbf24;
+    --red:#ef4444;--red-light:#f87171;--purple:#8b5cf6;--purple-light:#a78bfa;
+    --pink:#ec4899;--pink-light:#f9a8d4;--cyan:#06b6d4;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{height:100%;}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,sans-serif;background:var(--bg);color:var(--text);overflow:hidden;font-size:13px;}
+  #app{display:grid;grid-template-rows:auto 1fr;height:100vh;}
+  header{background:var(--bg-panel);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;gap:20px;flex-wrap:wrap;}
+  header h1{font-size:17px;font-weight:700;letter-spacing:-0.3px;}
+  header h1 span{background:linear-gradient(135deg,#60a5fa,#8b5cf6,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+  header .subtitle{font-size:11px;color:var(--text-dim);letter-spacing:0.3px;}
+  nav#scene-nav{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap;}
+  nav button{background:transparent;border:1px solid var(--border);color:var(--text-dim);padding:7px 12px;font-size:12px;border-radius:6px;cursor:pointer;font-family:inherit;transition:all 0.15s;font-weight:500;}
+  nav button:hover{border-color:var(--accent);color:var(--text);}
+  nav button.active{background:var(--accent);border-color:var(--accent);color:white;}
+  main{display:grid;grid-template-columns:1fr 420px;overflow:hidden;}
+  #canvas-container{position:relative;background:var(--bg);}
+  #canvas-container canvas{display:block;}
+  aside#info-panel{background:var(--bg-panel);border-left:1px solid var(--border);padding:24px;overflow-y:auto;}
+  aside#info-panel::-webkit-scrollbar{width:8px;}
+  aside#info-panel::-webkit-scrollbar-track{background:var(--bg-panel);}
+  aside#info-panel::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px;}
+  #info-panel h2{font-size:22px;font-weight:700;margin-bottom:10px;letter-spacing:-0.3px;}
+  #info-panel .lead{font-size:13px;color:var(--text-dim);margin-bottom:18px;line-height:1.55;}
+  #info-panel h3{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.9px;color:var(--accent-2);margin-top:18px;margin-bottom:8px;}
+  #info-panel p{font-size:13px;line-height:1.55;margin-bottom:9px;}
+  #info-panel strong{color:var(--accent-2);}
+  #info-panel ul{list-style:none;padding:0;}
+  #info-panel li{font-size:12px;padding:7px 0;border-bottom:1px solid var(--border);line-height:1.5;}
+  #info-panel li:last-child{border-bottom:none;}
+  code{font-family:"SF Mono",Menlo,Consolas,monospace;font-size:11px;background:var(--bg-panel-2);padding:2px 6px;border-radius:3px;color:var(--accent-3);}
+  .detail-box{background:var(--bg-panel-2);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:6px;padding:14px;margin-top:12px;font-size:12px;}
+  .detail-box .title{font-weight:700;color:var(--accent-2);margin-bottom:6px;font-size:13px;}
+  .detail-box .meta{font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;}
+  .overlay-hint{position:absolute;bottom:18px;left:18px;background:rgba(17,24,39,0.88);backdrop-filter:blur(10px);border:1px solid var(--border);border-radius:6px;padding:9px 14px;font-size:11px;color:var(--text-dim);pointer-events:none;}
+  .stage-counter{position:absolute;top:18px;left:18px;background:rgba(17,24,39,0.88);backdrop-filter:blur(10px);border:1px solid var(--border);border-radius:6px;padding:10px 14px;font-size:12px;font-weight:600;}
+  .stage-counter .small{font-size:10px;color:var(--text-dim);font-weight:400;text-transform:uppercase;letter-spacing:0.5px;}
+  .breadcrumb{position:absolute;top:18px;right:18px;background:rgba(17,24,39,0.88);backdrop-filter:blur(10px);border:1px solid var(--border);border-radius:6px;padding:9px 14px;font-size:11px;color:var(--text-dim);max-width:380px;}
+  .breadcrumb .crumb{color:var(--text);}
+  .breadcrumb .sep{color:var(--text-dimmer);margin:0 6px;}
+  .pill{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;margin-right:4px;text-transform:uppercase;letter-spacing:0.3px;}
+  .pill.red{background:rgba(239,68,68,0.18);color:var(--red-light);border:1px solid rgba(239,68,68,0.3);}
+  .pill.yellow{background:rgba(245,158,11,0.18);color:var(--yellow-light);border:1px solid rgba(245,158,11,0.3);}
+  .pill.green{background:rgba(16,185,129,0.18);color:var(--green-light);border:1px solid rgba(16,185,129,0.3);}
+  .pill.purple{background:rgba(139,92,246,0.18);color:var(--purple-light);border:1px solid rgba(139,92,246,0.3);}
+  .pill.blue{background:rgba(59,130,246,0.18);color:var(--accent-2);border:1px solid rgba(59,130,246,0.3);}
+  .pill.gray{background:rgba(107,114,128,0.2);color:var(--text-dim);border:1px solid rgba(107,114,128,0.3);}
+  .legend-row{display:flex;align-items:center;gap:10px;margin-bottom:7px;font-size:12px;}
+  .legend-dot{width:11px;height:11px;border-radius:50%;flex-shrink:0;}
+  .legend-bar{width:14px;height:3px;border-radius:2px;flex-shrink:0;}
+  .scoreboard{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin:14px 0;}
+  .score-tile{background:var(--bg-panel-2);border:1px solid var(--border);border-radius:6px;padding:12px 8px;text-align:center;}
+  .score-tile .num{font-size:22px;font-weight:700;color:var(--accent-2);}
+  .score-tile .lbl{font-size:9px;color:var(--text-dim);text-transform:uppercase;margin-top:2px;letter-spacing:0.4px;}
+  .dash-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0;}
+  .dash-card{background:var(--bg-panel-2);border:1px solid var(--border);border-radius:6px;padding:10px 12px;}
+  .dash-card .label{font-size:9px;text-transform:uppercase;color:var(--text-dim);letter-spacing:0.5px;margin-bottom:4px;}
+  .dash-card .value{font-size:16px;font-weight:700;color:var(--text);}
+  .dash-card .sub{font-size:10px;color:var(--text-dim);margin-top:2px;}
+  .topic-risk-row{display:grid;grid-template-columns:1fr 50px 70px;align-items:center;padding:6px 0;border-bottom:1px solid var(--border);font-size:11px;}
+  .topic-risk-row:last-child{border-bottom:none;}
+  .topic-risk-row .topic-name{color:var(--text);font-weight:500;}
+  .topic-risk-row.future .topic-name{color:var(--text-dimmer);font-weight:400;}
+  .topic-risk-row .score{text-align:right;font-weight:600;font-family:"SF Mono",monospace;font-size:11px;}
+  .hw-row{display:grid;grid-template-columns:16px 1fr 60px;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border);font-size:12px;}
+  .hw-row:last-child{border-bottom:none;}
+  .hw-row .check{width:14px;height:14px;border-radius:50%;background:var(--bg-panel-3);border:1px solid var(--border-light);}
+  .hw-row.done .check{background:var(--green);border-color:var(--green);}
+  .hw-row.current .check{background:var(--yellow);border-color:var(--yellow);animation:pulse 1.8s infinite;}
+  .hw-row .score-inline{text-align:right;font-weight:600;font-family:"SF Mono",monospace;font-size:11px;color:var(--text-dim);}
+  .hw-row.done .score-inline{color:var(--green-light);}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.5;}}
+  .pipe-sections{display:flex;flex-direction:column;gap:8px;margin-top:14px;}
+  .pipe-section{background:var(--bg-panel-2);border:1px solid var(--border);border-radius:6px;padding:12px;}
+  .pipe-section .sub-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--accent-2);margin-bottom:8px;}
+  .pipe-section ul{list-style:none;padding:0;}
+  .pipe-section li{font-size:11px;padding:5px 0;border-bottom:1px dashed rgba(75,85,99,0.4);line-height:1.5;}
+  .pipe-section li:last-child{border-bottom:none;}
+  .resource-item{display:flex;align-items:center;gap:10px;padding:10px;background:var(--bg-panel-2);border:1px solid var(--border);border-radius:6px;margin-bottom:8px;font-size:12px;}
+  .resource-item .icon{width:28px;height:28px;background:var(--bg-panel-3);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+  .resource-item .info{flex:1;min-width:0;}
+  .resource-item .title{font-weight:600;color:var(--text);margin-bottom:2px;}
+  .resource-item .meta{font-size:10px;color:var(--text-dim);}
+  .action-btn{display:inline-block;padding:7px 14px;background:var(--accent);color:white;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;margin-top:8px;transition:background 0.15s;}
+  .action-btn:hover{background:var(--accent-2);}
+  .action-btn.secondary{background:var(--bg-panel-2);border:1px solid var(--border);}
+  .action-btn.small{padding:5px 10px;font-size:11px;}
+  .progress-bar{height:6px;background:var(--bg-panel-3);border-radius:3px;overflow:hidden;margin:4px 0;}
+  .progress-bar .fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--purple));transition:width 0.6s ease;}
+  .progress-bar.green .fill{background:linear-gradient(90deg,var(--green),var(--green-light));}
+  .progress-bar.yellow .fill{background:linear-gradient(90deg,var(--yellow),var(--yellow-light));}
+  .progress-bar.red .fill{background:linear-gradient(90deg,var(--red),var(--red-light));}
+  .maria-profile{background:linear-gradient(135deg,rgba(236,72,153,0.1),rgba(139,92,246,0.1));border:1px solid var(--pink);border-radius:8px;padding:14px;margin-bottom:14px;}
+  .maria-profile .name{font-size:16px;font-weight:700;color:var(--pink-light);margin-bottom:2px;}
+  .maria-profile .biz{font-size:13px;color:var(--text);margin-bottom:8px;font-weight:500;}
+  .maria-profile .attrs{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px;}
+  .hat-fate-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);font-size:11px;}
+  .hat-fate-row:last-child{border-bottom:none;}
+  .hat-fate-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <h1><span>Thrive AI</span></h1>
+    <span class="subtitle">Interactive Architecture Walkthrough · Prepared for Heather McBroom</span>
+    <nav id="scene-nav">
+      <button data-scene="problem" class="active">1. Problem</button>
+      <button data-scene="journey">2. Journey</button>
+      <button data-scene="dataflow">3. Data Flow</button>
+      <button data-scene="student">4. Student</button>
+      <button data-scene="coaching">5. Coach View</button>
+      <button data-scene="hatsoff">6. Hats Off</button>
+    </nav>
+  </header>
+  <main>
+    <div id="canvas-container">
+      <div class="stage-counter" id="stage-counter">
+        <div class="small">Scene 1 of 6</div>
+        <div id="stage-title">The Problem</div>
+      </div>
+      <div class="breadcrumb" id="breadcrumb" style="display:none;"></div>
+      <div class="overlay-hint" id="hint">Drag to rotate · Scroll to zoom · Click elements for detail</div>
+    </div>
+    <aside id="info-panel"><div id="panel-content"></div></aside>
+  </main>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// ============================================================
+// CORE DATA
+// ============================================================
+const MARIA = {
+  name:"Maria Rodriguez",business:"Harvest Haven",
+  bizSubtitle:"Food truck \u2192 brick-and-mortar restaurant",
+  stage:"pre_revenue",stageLabel:"Pre-revenue",
+  industry:"Restaurant / Food Service",programMonth:5,programTotal:12,monthsToOpen:8,
+  entity:"No LLC yet",
+  background:"Operates Harvest Haven food truck for 6 months; sources produce from 4 community farms. Has outgrown the trailer and is moving to a brick-and-mortar in 8 months.",
+  topicScores:{
+    "Financial Health":{score:72,risk:"yellow",status:"done",month:1},
+    "Legal & Compliance":{score:58,risk:"red",status:"done",month:2,flag:"No LLC yet — high priority"},
+    "Operations & Supply Chain":{score:81,risk:"green",status:"done",month:3},
+    "Marketing & Brand":{score:68,risk:"yellow",status:"done",month:4},
+    "Technology & Automation":{score:null,risk:"yellow",status:"current",month:5,note:"In progress — Week 4 of 4"},
+    "Sales & Customer Acquisition":{score:null,risk:null,status:"future",month:6},
+    "People & HR":{score:null,risk:null,status:"future",month:7},
+    "Customer Experience":{score:null,risk:null,status:"future",month:8},
+    "Strategy & Planning":{score:null,risk:null,status:"future",month:9},
+    "Leadership & Self-Dev":{score:null,risk:null,status:"future",month:10},
+    "Growth & Scaling":{score:null,risk:null,status:"future",month:11},
+    "Risk & Compliance":{score:null,risk:null,status:"future",month:12},
+  },
+  homework:[
+    {week:1,title:"Gallup StrengthsFinder — complete and submit results",done:true,score:"Pass"},
+    {week:2,title:"Audit current food truck tech stack, document pain points",done:true,score:"8/10"},
+    {week:3,title:"Research 3 AI/automation tools, complete comparison matrix",done:true,score:"7/10"},
+    {week:4,title:"Build customer journey automation decision tree",done:false,current:true,score:"—"},
+  ],
+  assessment:{
+    topic:"Technology & Automation",month:5,
+    questions:[
+      {q:"Current tech tools used in operations",a:5,max:10},
+      {q:"Understanding of AI/automation ROI",a:3,max:10},
+      {q:"Customer data collection maturity",a:4,max:10},
+      {q:"Email/SMS marketing readiness",a:7,max:10},
+      {q:"Website/booking system plan",a:6,max:10},
+    ],
+    rulesFired:[
+      {id:"R_tech_restaurant_pre_revenue_01",condition:"Q2 < 5 AND industry=restaurant",action:"Assign ROI calculation worksheet"},
+      {id:"R_tech_restaurant_pre_revenue_02",condition:"Q3 < 5",action:"Assign customer data baseline exercise"},
+      {id:"R_tech_restaurant_pre_revenue_03",condition:"Q1 < 6 AND Q5 < 7 AND stage=pre_revenue",action:"Assign pre-launch tech stack checklist"},
+    ]
+  }
+};
+
+const TAXONOMY=[
+  {id:"financial",name:"Financial Health",month:1,color:0x10b981,subtopics:[
+    {name:"Budgeting & Cash Flow",focus:[{title:"Startup Budget Worksheet",type:"workbook"},{title:"Monthly Cash Flow Tracker",type:"document"},{title:"Break-Even Analysis Template",type:"workbook"}]},
+    {name:"Pricing & Unit Economics",focus:[{title:"Cost-of-Goods Worksheet",type:"workbook"},{title:"Margin Calculator",type:"document"},{title:"Pricing Strategy Template",type:"workbook"}]},
+    {name:"Capital & Funding",focus:[{title:"Funding Sources Matrix",type:"document"},{title:"Pitch Deck Template",type:"workbook"},{title:"Loan Readiness Checklist",type:"test"}]},
+  ]},
+  {id:"legal",name:"Legal & Compliance",month:2,color:0xef4444,subtopics:[
+    {name:"Entity Formation",focus:[{title:"LLC Formation Checklist",type:"test"},{title:"Operating Agreement Template",type:"document"},{title:"Tax Registration Guide",type:"workbook"}]},
+    {name:"Licenses & Permits",focus:[{title:"Industry License Lookup",type:"link"},{title:"Permit Timeline Worksheet",type:"workbook"},{title:"Inspection Prep Checklist",type:"test"}]},
+    {name:"Contracts & Agreements",focus:[{title:"Vendor Contract Template",type:"document"},{title:"Customer Terms Template",type:"document"},{title:"NDA Library",type:"link"}]},
+  ]},
+  {id:"operations",name:"Operations & Supply Chain",month:3,color:0x06b6d4,subtopics:[
+    {name:"Supplier Management",focus:[{title:"Supplier Scorecard",type:"workbook"},{title:"Negotiation Playbook",type:"document"},{title:"Quality Control Checklist",type:"test"}]},
+    {name:"Process Design",focus:[{title:"SOP Template Library",type:"document"},{title:"Workflow Map Worksheet",type:"workbook"},{title:"Quality Metrics Tracker",type:"workbook"}]},
+    {name:"Inventory & Logistics",focus:[{title:"Inventory Tracking System",type:"workbook"},{title:"Reorder Point Calculator",type:"document"},{title:"Logistics Cost Worksheet",type:"workbook"}]},
+  ]},
+  {id:"marketing",name:"Marketing & Brand",month:4,color:0xec4899,subtopics:[
+    {name:"Brand Identity",focus:[{title:"Brand Voice Worksheet",type:"workbook"},{title:"Visual Identity Guide",type:"document"},{title:"Customer Persona Template",type:"workbook"}]},
+    {name:"Content Marketing",focus:[{title:"Content Calendar Template",type:"workbook"},{title:"SEO Basics Workbook",type:"workbook"},{title:"Social Media Playbook",type:"document"}]},
+    {name:"Paid Channels",focus:[{title:"Ad Budget Calculator",type:"document"},{title:"Campaign ROI Tracker",type:"workbook"},{title:"Platform Selection Guide",type:"document"}]},
+  ]},
+  {id:"tech",name:"Technology & Automation",month:5,color:0x3b82f6,current:true,subtopics:[
+    {name:"AI & Automation",current:true,focus:[
+      {title:"AI Tool Cost-Benefit Matrix",type:"workbook"},
+      {title:"Customer Journey Automation Decision Tree",type:"workbook",current:true,detail:"Maria's current work: evaluate AI/automation options for customer journey touchpoints. Branches: cost, website compatibility, CRM integration, email/SMS notification strategy."},
+      {title:"Vendor Integration Checklist",type:"test"},
+    ]},
+    {name:"Digital Infrastructure",focus:[{title:"Website Platform Selection",type:"document"},{title:"POS System Comparison",type:"workbook"},{title:"Data Security Basics",type:"document"}]},
+    {name:"Customer Journey Tech",focus:[{title:"Email/SMS Platform Selection",type:"document"},{title:"Booking/Reservation System Comparison",type:"workbook"},{title:"Loyalty Program Setup Guide",type:"document"}]},
+  ]},
+  {id:"sales",name:"Sales & Customer Acquisition",month:6,color:0xf59e0b,subtopics:[
+    {name:"Sales Process",focus:[{title:"Sales Pipeline Template",type:"workbook"},{title:"Conversion Rate Tracker",type:"document"},{title:"Objection Handling Guide",type:"document"}]},
+    {name:"Customer Relationships",focus:[{title:"CRM Setup Guide",type:"workbook"},{title:"Customer Onboarding Flow",type:"document"},{title:"Retention Metrics Tracker",type:"workbook"}]},
+    {name:"Pricing Strategy",focus:[{title:"Competitive Pricing Analysis",type:"workbook"},{title:"Discount Strategy Worksheet",type:"workbook"},{title:"Value Proposition Template",type:"document"}]},
+  ]},
+  {id:"hr",name:"People & HR",month:7,color:0x8b5cf6,subtopics:[
+    {name:"Hiring & Onboarding",focus:[{title:"Job Description Template",type:"document"},{title:"Interview Question Bank",type:"document"},{title:"Onboarding Checklist",type:"test"}]},
+    {name:"Team Development",focus:[{title:"Gallup StrengthsFinder",type:"link"},{title:"1:1 Meeting Template",type:"document"},{title:"Performance Review Framework",type:"workbook"}]},
+    {name:"Compensation & Benefits",focus:[{title:"Salary Benchmark Tool",type:"link"},{title:"Benefits Comparison Matrix",type:"workbook"},{title:"Equity Distribution Guide",type:"document"}]},
+  ]},
+  {id:"customer",name:"Customer Experience",month:8,color:0x14b8a6,subtopics:[
+    {name:"Service Design",focus:[{title:"Customer Journey Map Template",type:"workbook"},{title:"Service Blueprint Worksheet",type:"workbook"},{title:"Touchpoint Audit Checklist",type:"test"}]},
+    {name:"Feedback & Reviews",focus:[{title:"Review Response Playbook",type:"document"},{title:"NPS Survey Template",type:"document"},{title:"Feedback Loop Framework",type:"document"}]},
+    {name:"Loyalty & Retention",focus:[{title:"Loyalty Program Design",type:"workbook"},{title:"Retention Metrics Dashboard",type:"document"},{title:"Win-Back Campaign Template",type:"workbook"}]},
+  ]},
+  {id:"strategy",name:"Strategy & Planning",month:9,color:0x6366f1,subtopics:[
+    {name:"Vision & Goals",focus:[{title:"SMART Goals Worksheet",type:"workbook"},{title:"12-Month Roadmap Template",type:"workbook"},{title:"OKR Framework",type:"document"}]},
+    {name:"Market Analysis",focus:[{title:"Competitor Analysis Matrix",type:"workbook"},{title:"SWOT Analysis Template",type:"workbook"},{title:"Market Sizing Worksheet",type:"document"}]},
+    {name:"Business Model",focus:[{title:"Business Model Canvas",type:"workbook"},{title:"Revenue Stream Analysis",type:"workbook"},{title:"Scaling Readiness Checklist",type:"test"}]},
+  ]},
+  {id:"leadership",name:"Leadership & Self-Dev",month:10,color:0xa855f7,subtopics:[
+    {name:"Leadership Style",focus:[{title:"Leadership Self-Assessment",type:"test"},{title:"Communication Style Inventory",type:"test"},{title:"Decision Framework Guide",type:"document"}]},
+    {name:"Time Management",focus:[{title:"Weekly Time Audit",type:"workbook"},{title:"Priority Matrix Template",type:"workbook"},{title:"Energy Management Workbook",type:"workbook"}]},
+    {name:"Continuous Learning",focus:[{title:"Learning Plan Template",type:"document"},{title:"Mentor Outreach Template",type:"document"},{title:"Industry Reading List",type:"link"}]},
+  ]},
+  {id:"growth",name:"Growth & Scaling",month:11,color:0xd946ef,subtopics:[
+    {name:"Scaling Readiness",focus:[{title:"Scaling Readiness Assessment",type:"test"},{title:"Bottleneck Analysis Worksheet",type:"workbook"},{title:"Growth Stage Diagnostic",type:"test"}]},
+    {name:"New Markets",focus:[{title:"Market Entry Framework",type:"document"},{title:"Geographic Expansion Checklist",type:"test"},{title:"Segment Expansion Worksheet",type:"workbook"}]},
+    {name:"Partnerships",focus:[{title:"Partnership Evaluation Matrix",type:"workbook"},{title:"JV Agreement Framework",type:"document"},{title:"Channel Partner Playbook",type:"document"}]},
+  ]},
+  {id:"risk",name:"Risk & Compliance",month:12,color:0x64748b,subtopics:[
+    {name:"Risk Assessment",focus:[{title:"Risk Register Template",type:"workbook"},{title:"Business Continuity Plan",type:"document"},{title:"Insurance Needs Analysis",type:"workbook"}]},
+    {name:"Regulatory Compliance",focus:[{title:"Regulatory Calendar",type:"document"},{title:"Audit Prep Checklist",type:"test"},{title:"Reporting Requirements Guide",type:"document"}]},
+    {name:"Crisis Management",focus:[{title:"Crisis Communication Plan",type:"document"},{title:"Incident Response Playbook",type:"document"},{title:"Recovery Planning Template",type:"workbook"}]},
+  ]},
+];
+
+const DECISION_TREE={
+  root:"AI/Automation for Pre-Launch Customer Journey",
+  branches:[
+    {name:"Cost Constraint",color:0x10b981,children:[
+      {name:"Free tier",tools:["Mailchimp Free","HubSpot Free CRM"]},
+      {name:"Under $50/mo",tools:["Zapier Starter","SMS by Twilio"]},
+      {name:"Under $200/mo",tools:["Klaviyo Basic","ActiveCampaign"]},
+    ]},
+    {name:"Website Compat.",color:0x3b82f6,children:[
+      {name:"Squarespace",tools:["Native Email","Acuity Scheduling"]},
+      {name:"Future: Shopify",tools:["Shopify Email","Shopify Flow"]},
+      {name:"Custom integration",tools:["Zapier","Make.com"]},
+    ]},
+    {name:"CRM Integration",color:0xf59e0b,children:[
+      {name:"Stand-alone CRM",tools:["HubSpot","Pipedrive"]},
+      {name:"POS-integrated",tools:["Toast Loyalty","Square CRM"]},
+      {name:"Lightweight",tools:["Google Sheets + Zapier"]},
+    ]},
+    {name:"Journey Touchpoint",color:0xec4899,children:[
+      {name:"Pre-launch waitlist",tools:["ConvertKit","Prefinery"]},
+      {name:"Reservation booking",tools:["OpenTable","Resy","Tock"]},
+      {name:"Post-visit follow-up",tools:["Birdeye","Yelp auto-reply"]},
+    ]},
+  ]
+};
+
+const HATS=[
+  {short:"Assessment Review",full:"Assessment Reviewer",category:"operations",description:"Manually reading 25 × 12 = 300 assessment submissions per cohort at ~15 min each. 75 hours of cognitive load.",replacement:{type:"eliminated",by:"Rules Engine",detail:"Deterministic rules engine applies benchmark logic in under 60 seconds per assessment. Zero manual review required."}},
+  {short:"Homework Grading",full:"Weekly Homework Grader",category:"operations",description:"Grading weekly homework submissions from 25 participants against rubrics for each assignment.",replacement:{type:"eliminated",by:"LLM Rubric Grader",detail:"Provider-agnostic LLM grades homework against Thrive-maintained rubrics. Scores flow into competency dashboard automatically."}},
+  {short:"Action Plans",full:"Action Plan Author",category:"operations",description:"Writing personalized, sequenced action plans for each participant each month.",replacement:{type:"eliminated",by:"Rules Engine + LLM Enrichment",detail:"Deterministic output from rules engine + LLM adds industry and stage context. Generated in real time."}},
+  {short:"Coach Summaries",full:"Coaching Summary Writer",category:"coaching",description:"Drafting staff-facing summaries that highlight risks, gaps, and follow-up priorities.",replacement:{type:"eliminated",by:"LLM Summary Generator",detail:"LLM generates coaching summaries from rule firings + homework scores. Top 2–3 risks surfaced automatically."}},
+  {short:"Pattern Spotting",full:"Pattern Spotter Across Participants",category:"coaching",description:"Noticing cross-participant patterns — who's struggling, who's thriving, what's working.",replacement:{type:"eliminated",by:"Trajectory Layer (Month 2+)",detail:"Longitudinal data model enables cross-month pattern detection and alert generation."}},
+  {short:"Institutional Memory",full:"Institutional Memory",category:"operations",description:"Remembering what each participant did, when, and how it went over 12 months.",replacement:{type:"eliminated",by:"Versioned Data Model",detail:"Every response, rule firing, exercise assignment, and outcome stored with full history. The system is the memory."}},
+  {short:"Curriculum Co-Author",full:"Curriculum Co-Author",category:"content",description:"Collaborating with curriculum writer on benchmarks, rubrics, and focus areas.",replacement:{type:"partial",by:"Format Spec + Ingestion Pipeline",detail:"Content decisions remain with Heather and curriculum writer. Format conversion, validation, and versioning are automated."}},
+  {short:"QA Gatekeeper",full:"Quality Gatekeeper for AI Outputs",category:"coaching",description:"Spot-checking AI-generated outputs for accuracy, tone, and relevance.",replacement:{type:"partial",by:"Regression Test Suite + Spot Reviews",detail:"Automated regression suite catches most regressions. Heather reviews 5–10 samples monthly instead of every output."}},
+  {short:"Staff Trainer",full:"Staff Trainer",category:"operations",description:"Training Andy, Carina, and new hires on program operations.",replacement:{type:"partial",by:"Transition Docs + Video Library",detail:"5 consolidated guides cover day-to-day operations. New hires onboard via docs; Heather handles complex cases only."}},
+  {short:"Board Reporter",full:"Board / Funder Reporter",category:"strategic",description:"Compiling reports for the board and funders on program outcomes.",replacement:{type:"partial",by:"Automated Exports",detail:"Dashboard and cohort exports provide all the raw data. Heather tells the story; the system supplies the numbers."}},
+  {short:"Pilot Tester",full:"Pilot Tester (one-time)",category:"operations",description:"Running through every assessment as a test participant before each cohort launches.",replacement:{type:"partial",by:"Automated Regression Suite",detail:"One-time task; automated regression suite handles future cohort validation."}},
+  {short:"Executive Director",full:"Executive Director",category:"strategic",description:"Leading the organization, setting direction, building partnerships.",replacement:{type:"kept",by:"Human Leadership",detail:"This is the hat that gets to stay on. The system exists so this hat has room to breathe."}},
+  {short:"Program Designer",full:"Program Designer",category:"strategic",description:"Designing what the Scale Accelerator teaches and how.",replacement:{type:"kept",by:"Human Judgment",detail:"The system executes Thrive's program design. It does not replace program design decisions."}},
+  {short:"Benchmark Decider",full:"Benchmark Decision Maker",category:"strategic",description:"Deciding what the benchmarks and rubrics should be, what counts as a red flag, what exercises to assign.",replacement:{type:"kept",by:"Human Judgment (System Executes)",detail:"Heather decides; the rules engine executes. Benchmark and rubric logic is Thrive's IP and stays under Heather's control."}},
+  {short:"Security Approver",full:"Security Approver",category:"strategic",description:"Final sign-off on who has access to what data.",replacement:{type:"kept",by:"Human Authority",detail:"RBAC role changes, data retention decisions, and incident response authority remain with Heather."}},
+  {short:"Budget Steward",full:"Budget Steward",category:"strategic",description:"Managing the program budget and making financial tradeoffs.",replacement:{type:"kept",by:"Human Authority",detail:"No system replaces budget decisions."}},
+  {short:"Grant Fundraiser",full:"Grant Fundraiser",category:"strategic",description:"Writing grants and securing funding for Thrive's programs.",replacement:{type:"kept",by:"Human Relationship",detail:"Fundraising is a relationship business. The system generates the outcomes data that makes grants fundable."}},
+  {short:"Team Lead",full:"Team Lead",category:"strategic",description:"Leading the Thrive team (Andy, Carina, Craig, Curriculum Writer).",replacement:{type:"kept",by:"Human Leadership",detail:"People leadership is not a hat any system takes off."}},
+];
+
+const CATEGORY_COLORS={operations:0xef4444,content:0xf59e0b,coaching:0x8b5cf6,strategic:0x10b981};
+const REPLACEMENT_COLORS={eliminated:0x4b5563,partial:0xf59e0b,kept:0x10b981};
+// ============================================================
+// CORE ENGINE
+// ============================================================
+const container=document.getElementById('canvas-container');
+const panel=document.getElementById('panel-content');
+const nav=document.getElementById('scene-nav');
+const stageCounter=document.getElementById('stage-counter');
+const stageTitleEl=document.getElementById('stage-title');
+const breadcrumbEl=document.getElementById('breadcrumb');
+
+let scene,camera,renderer,raycaster,mouse,currentScene,currentSceneName;
+let animationId,clock;
+let orbitState={dragging:false,lastX:0,lastY:0,theta:0,phi:Math.PI/3,radius:30,target:new THREE.Vector3(0,0,0),targetRadius:30,targetTheta:0,targetPhi:Math.PI/3};
+let mouseDownPos={x:0,y:0};
+
+function init(){
+  scene=new THREE.Scene();
+  scene.background=new THREE.Color(0x0a0e1a);
+  scene.fog=new THREE.Fog(0x0a0e1a,60,180);
+  const w=container.clientWidth,h=container.clientHeight;
+  camera=new THREE.PerspectiveCamera(50,w/h,0.1,500);
+  renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+  renderer.setSize(w,h);
+  container.appendChild(renderer.domElement);
+  raycaster=new THREE.Raycaster();
+  mouse=new THREE.Vector2();
+  clock=new THREE.Clock();
+  updateCamera();
+  setupControls();
+  setupLights();
+  window.addEventListener('resize',onResize);
+  nav.querySelectorAll('button').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      nav.querySelectorAll('button').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      loadScene(btn.dataset.scene);
+    });
+  });
+  loadScene('problem');
+  animate();
+}
+
+function updateCamera(){
+  const{theta,phi,radius,target}=orbitState;
+  camera.position.x=target.x+radius*Math.sin(phi)*Math.sin(theta);
+  camera.position.y=target.y+radius*Math.cos(phi);
+  camera.position.z=target.z+radius*Math.sin(phi)*Math.cos(theta);
+  camera.lookAt(target);
+}
+
+function setupControls(){
+  const dom=renderer.domElement;
+  dom.addEventListener('mousedown',e=>{orbitState.dragging=true;orbitState.lastX=e.clientX;orbitState.lastY=e.clientY;mouseDownPos.x=e.clientX;mouseDownPos.y=e.clientY;});
+  window.addEventListener('mouseup',()=>{orbitState.dragging=false;});
+  window.addEventListener('mousemove',e=>{
+    if(!orbitState.dragging)return;
+    const dx=e.clientX-orbitState.lastX,dy=e.clientY-orbitState.lastY;
+    orbitState.theta-=dx*0.007;
+    orbitState.phi-=dy*0.007;
+    orbitState.phi=Math.max(0.15,Math.min(Math.PI-0.15,orbitState.phi));
+    orbitState.targetTheta=orbitState.theta;orbitState.targetPhi=orbitState.phi;
+    orbitState.lastX=e.clientX;orbitState.lastY=e.clientY;
+    updateCamera();
+  });
+  dom.addEventListener('wheel',e=>{
+    e.preventDefault();
+    orbitState.radius*=(1+e.deltaY*0.0012);
+    orbitState.radius=Math.max(5,Math.min(250,orbitState.radius));
+    orbitState.targetRadius=orbitState.radius;
+    updateCamera();
+  },{passive:false});
+  dom.addEventListener('click',e=>{
+    const dist=Math.hypot(e.clientX-mouseDownPos.x,e.clientY-mouseDownPos.y);
+    if(dist>3)return;
+    if(!currentScene||!currentScene.onClick)return;
+    const rect=renderer.domElement.getBoundingClientRect();
+    mouse.x=((e.clientX-rect.left)/rect.width)*2-1;
+    mouse.y=-((e.clientY-rect.top)/rect.height)*2+1;
+    raycaster.setFromCamera(mouse,camera);
+    currentScene.onClick(raycaster);
+  });
+}
+
+function setupLights(){
+  scene.add(new THREE.AmbientLight(0x404e6e,1.0));
+  const key=new THREE.DirectionalLight(0xffffff,0.9);key.position.set(12,22,12);scene.add(key);
+  const rim=new THREE.DirectionalLight(0x60a5fa,0.55);rim.position.set(-12,6,-10);scene.add(rim);
+  const fill=new THREE.PointLight(0x8b5cf6,0.5,50);fill.position.set(0,12,6);scene.add(fill);
+}
+
+function onResize(){
+  const w=container.clientWidth,h=container.clientHeight;
+  camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h);
+}
+
+function animate(){
+  animationId=requestAnimationFrame(animate);
+  if(currentScene&&currentScene.update)currentScene.update();
+  renderer.render(scene,camera);
+}
+
+function clearScene(){
+  const toRemove=[...scene.children];
+  toRemove.forEach(obj=>{scene.remove(obj);disposeObject(obj);});
+  setupLights();
+}
+
+function disposeObject(obj){
+  obj.traverse&&obj.traverse(child=>{
+    if(child.geometry)child.geometry.dispose();
+    if(child.material){
+      if(Array.isArray(child.material)){child.material.forEach(m=>{if(m.map)m.map.dispose();m.dispose();});}
+      else{if(child.material.map)child.material.map.dispose();child.material.dispose();}
+    }
+  });
+}
+
+function setBreadcrumb(parts){
+  if(!parts||parts.length===0){breadcrumbEl.style.display='none';return;}
+  breadcrumbEl.style.display='block';
+  breadcrumbEl.innerHTML=parts.map((p,i)=>
+    i<parts.length-1
+      ?`<span class="crumb">${p}</span><span class="sep">&rsaquo;</span>`
+      :`<span class="crumb" style="color:var(--accent-2)">${p}</span>`
+  ).join('');
+}
+
+function loadScene(name){
+  if(currentScene&&currentScene.exit)currentScene.exit();
+  clearScene();
+  currentScene=scenes[name];currentSceneName=name;
+  const titles={problem:"The Problem",journey:"Maria's Journey",dataflow:"Data Flow",student:"Student View",coaching:"Coach View",hatsoff:"Hats Come Off"};
+  const order=["problem","journey","dataflow","student","coaching","hatsoff"];
+  stageCounter.querySelector('.small').textContent=`Scene ${order.indexOf(name)+1} of 6`;
+  stageTitleEl.textContent=titles[name];
+  setBreadcrumb(null);
+  currentScene.enter();
+}
+
+// ============================================================
+// LABEL HELPER
+// ============================================================
+function makeLabel(text,color='#f3f4f6',size=1,bg=null,fontPx=42){
+  const canvas=document.createElement('canvas');
+  canvas.width=512;canvas.height=128;
+  const ctx=canvas.getContext('2d');
+  if(bg){ctx.fillStyle=bg;ctx.fillRect(4,30,canvas.width-8,68);}
+  ctx.font=`bold ${fontPx}px -apple-system,"Segoe UI",Inter,sans-serif`;
+  ctx.fillStyle=color;ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.shadowColor='rgba(0,0,0,0.85)';ctx.shadowBlur=4;
+  ctx.fillText(text,canvas.width/2,canvas.height/2);
+  const tex=new THREE.CanvasTexture(canvas);tex.needsUpdate=true;
+  const mat=new THREE.SpriteMaterial({map:tex,transparent:true,depthWrite:false,depthTest:true});
+  const sprite=new THREE.Sprite(mat);
+  sprite.scale.set(size*4,size,1);
+  return sprite;
+}
+
+// ============================================================
+// PRIMITIVES
+// ============================================================
+function buildHeather(){
+  const g=new THREE.Group();
+  const mat=(color,rough=0.5,metal=0.15)=>new THREE.MeshStandardMaterial({color,roughness:rough,metalness:metal,emissive:color,emissiveIntensity:0.05});
+  const torso=new THREE.Mesh(new THREE.CylinderGeometry(0.85,1.05,2.6,16),mat(0x4a90d9));torso.position.y=0;g.add(torso);
+  const neck=new THREE.Mesh(new THREE.CylinderGeometry(0.25,0.3,0.3,12),mat(0xf0c599));neck.position.y=1.45;g.add(neck);
+  const head=new THREE.Mesh(new THREE.SphereGeometry(0.65,24,24),mat(0xf0c599));head.position.y=2;g.add(head);
+  const hair=new THREE.Mesh(new THREE.SphereGeometry(0.68,20,20,0,Math.PI*2,0,Math.PI/2),mat(0x3b2618));hair.position.y=2.05;g.add(hair);
+  for(const s of[-1,1]){
+    const sh=new THREE.Mesh(new THREE.SphereGeometry(0.32,16,16),mat(0x4a90d9));sh.position.set(s*1.0,1.1,0);g.add(sh);
+    const arm=new THREE.Mesh(new THREE.CylinderGeometry(0.22,0.2,1.1,10),mat(0x4a90d9));arm.position.set(s*1.02,0.5,0);g.add(arm);
+    const fore=new THREE.Mesh(new THREE.CylinderGeometry(0.2,0.18,1.0,10),mat(0x4a90d9));fore.position.set(s*1.02,-0.55,0);g.add(fore);
+    const hand=new THREE.Mesh(new THREE.SphereGeometry(0.18,12,12),mat(0xf0c599));hand.position.set(s*1.02,-1.15,0);g.add(hand);
+  }
+  return g;
+}
+
+function buildMaria(){
+  const g=new THREE.Group();
+  const mat=(color,rough=0.5)=>new THREE.MeshStandardMaterial({color,roughness:rough,metalness:0.1,emissive:color,emissiveIntensity:0.05});
+  const torso=new THREE.Mesh(new THREE.CylinderGeometry(0.8,0.95,2.4,14),mat(0xec4899));g.add(torso);
+  const apron=new THREE.Mesh(new THREE.BoxGeometry(1.0,1.8,0.15),mat(0xfce7f3));apron.position.set(0,-0.1,0.85);g.add(apron);
+  const head=new THREE.Mesh(new THREE.SphereGeometry(0.6,20,20),mat(0xd4a574));head.position.y=1.85;g.add(head);
+  const hair=new THREE.Mesh(new THREE.SphereGeometry(0.65,18,18,0,Math.PI*2,0,Math.PI/1.5),mat(0x2d1810));hair.position.y=1.95;g.add(hair);
+  for(const s of[-1,1]){
+    const sh=new THREE.Mesh(new THREE.SphereGeometry(0.3,14,14),mat(0xec4899));sh.position.set(s*0.92,1.0,0);g.add(sh);
+    const arm=new THREE.Mesh(new THREE.CylinderGeometry(0.2,0.18,1.9,10),mat(0xec4899));arm.position.set(s*0.92,0,0);g.add(arm);
+  }
+  return g;
+}
+
+function buildGear(radius=0.7,color=0xef4444){
+  const g=new THREE.Group();
+  const mat=new THREE.MeshStandardMaterial({color,roughness:0.35,metalness:0.55,emissive:color,emissiveIntensity:0.2});
+  const disc=new THREE.Mesh(new THREE.CylinderGeometry(radius,radius,0.22,24),mat);disc.rotation.x=Math.PI/2;g.add(disc);
+  for(let i=0;i<10;i++){
+    const a=(i/10)*Math.PI*2;
+    const tooth=new THREE.Mesh(new THREE.BoxGeometry(0.2,0.2,0.25),mat);
+    tooth.position.set(Math.cos(a)*(radius+0.09),Math.sin(a)*(radius+0.09),0);tooth.rotation.z=a;g.add(tooth);
+  }
+  const hub=new THREE.Mesh(new THREE.CylinderGeometry(radius*0.3,radius*0.3,0.28,14),new THREE.MeshStandardMaterial({color:0x1f2937}));
+  hub.rotation.x=Math.PI/2;g.add(hub);
+  return g;
+}
+
+function buildBook(size=1,color=0xf59e0b){
+  const g=new THREE.Group();
+  g.add(new THREE.Mesh(new THREE.BoxGeometry(size*1.2,size*0.18,size*0.9),new THREE.MeshStandardMaterial({color,roughness:0.55,emissive:color,emissiveIntensity:0.12})));
+  const pages=new THREE.Mesh(new THREE.BoxGeometry(size*1.12,size*0.15,size*0.86),new THREE.MeshStandardMaterial({color:0xfef3c7,roughness:0.8}));pages.position.y=0.02;g.add(pages);
+  const spine=new THREE.Mesh(new THREE.BoxGeometry(size*0.08,size*0.22,size*0.9),new THREE.MeshStandardMaterial({color,roughness:0.5,emissive:color,emissiveIntensity:0.15}));spine.position.x=-size*0.56;g.add(spine);
+  return g;
+}
+
+function buildDialogueBubble(color=0x8b5cf6){
+  const g=new THREE.Group();
+  const body=new THREE.Mesh(new THREE.SphereGeometry(0.7,16,14),new THREE.MeshStandardMaterial({color,roughness:0.4,emissive:color,emissiveIntensity:0.25,metalness:0.3}));
+  body.scale.set(1.3,1.0,1.1);g.add(body);
+  const tail=new THREE.Mesh(new THREE.ConeGeometry(0.2,0.35,8),new THREE.MeshStandardMaterial({color,roughness:0.4,emissive:color,emissiveIntensity:0.25}));
+  tail.position.set(-0.5,-0.7,0);tail.rotation.z=Math.PI/3;g.add(tail);
+  for(let i=-1;i<=1;i++){const dot=new THREE.Mesh(new THREE.SphereGeometry(0.08,8,8),new THREE.MeshBasicMaterial({color:0xffffff}));dot.position.set(i*0.25,0,0.75);g.add(dot);}
+  return g;
+}
+
+function buildCompass(color=0x10b981){
+  const g=new THREE.Group();
+  g.add(new THREE.Mesh(new THREE.CylinderGeometry(0.65,0.65,0.12,24),new THREE.MeshStandardMaterial({color:0x111827,roughness:0.4,metalness:0.5})));
+  const rim=new THREE.Mesh(new THREE.TorusGeometry(0.65,0.06,8,24),new THREE.MeshStandardMaterial({color,roughness:0.3,metalness:0.7,emissive:color,emissiveIntensity:0.25}));rim.rotation.x=Math.PI/2;g.add(rim);
+  const n=new THREE.Mesh(new THREE.ConeGeometry(0.08,0.5,6),new THREE.MeshStandardMaterial({color,emissive:color,emissiveIntensity:0.4}));n.position.set(0,0.08,0.15);n.rotation.x=-Math.PI/2;g.add(n);
+  const s=new THREE.Mesh(new THREE.ConeGeometry(0.08,0.5,6),new THREE.MeshStandardMaterial({color:0x9ca3af}));s.position.set(0,0.08,-0.15);s.rotation.x=Math.PI/2;g.add(s);
+  return g;
+}
+
+function buildMonitor(w=1.6,h=1.0,screenColor=0x3b82f6){
+  const g=new THREE.Group();
+  g.add(new THREE.Mesh(new THREE.BoxGeometry(w,h,0.12),new THREE.MeshStandardMaterial({color:0x1f2937,roughness:0.4,metalness:0.3})));
+  const screen=new THREE.Mesh(new THREE.PlaneGeometry(w*0.92,h*0.84),new THREE.MeshBasicMaterial({color:screenColor,transparent:true,opacity:0.92}));screen.position.z=0.07;g.add(screen);
+  const glow=new THREE.Mesh(new THREE.PlaneGeometry(w*1.1,h*1.0),new THREE.MeshBasicMaterial({color:screenColor,transparent:true,opacity:0.12}));glow.position.z=0.06;g.add(glow);
+  const stand=new THREE.Mesh(new THREE.CylinderGeometry(0.08,0.12,0.4,8),new THREE.MeshStandardMaterial({color:0x374151}));stand.position.y=-h*0.65;g.add(stand);
+  const base=new THREE.Mesh(new THREE.CylinderGeometry(0.45,0.45,0.05,16),new THREE.MeshStandardMaterial({color:0x374151}));base.position.y=-h*0.88;g.add(base);
+  return g;
+}
+
+function buildFunnel(color=0x8b5cf6){
+  const g=new THREE.Group();
+  const cone=new THREE.Mesh(new THREE.CylinderGeometry(0.15,1.0,1.6,18,1,true),new THREE.MeshStandardMaterial({color,roughness:0.35,metalness:0.55,side:THREE.DoubleSide,emissive:color,emissiveIntensity:0.25}));g.add(cone);
+  const rim=new THREE.Mesh(new THREE.TorusGeometry(1.0,0.07,10,24),new THREE.MeshStandardMaterial({color,roughness:0.3,metalness:0.6,emissive:color,emissiveIntensity:0.3}));rim.rotation.x=Math.PI/2;rim.position.y=0.8;g.add(rim);
+  const spout=new THREE.Mesh(new THREE.CylinderGeometry(0.15,0.15,0.35,12),new THREE.MeshStandardMaterial({color,metalness:0.5,emissive:color,emissiveIntensity:0.2}));spout.position.y=-0.95;g.add(spout);
+  return g;
+}
+
+function buildRulesEngine(color=0xec4899){
+  const g=new THREE.Group();
+  g.add(buildGear(0.8,color));
+  const g2=buildGear(0.55,0xf472b6);g2.position.set(1.2,0.4,0);g.add(g2);
+  const g3=buildGear(0.55,0xdb2777);g3.position.set(-1.1,-0.35,0);g.add(g3);
+  return g;
+}
+
+function buildBrain(color=0xf59e0b){
+  const g=new THREE.Group();
+  const base=new THREE.Mesh(new THREE.SphereGeometry(1.0,24,24),new THREE.MeshStandardMaterial({color,roughness:0.4,metalness:0.3,emissive:color,emissiveIntensity:0.25}));g.add(base);
+  [[0.5,0.6,0.5],[-0.5,0.6,0.5],[0.0,0.9,0.2],[0.6,0.2,0.7],[-0.6,0.2,0.7],[0.0,-0.3,0.95],[0.7,-0.5,0.5],[-0.7,-0.5,0.5],[0.4,0.7,-0.5],[-0.4,0.7,-0.5],[0.6,-0.2,-0.7],[-0.6,-0.2,-0.7]].forEach(p=>{
+    const bump=new THREE.Mesh(new THREE.SphereGeometry(0.25,10,10),new THREE.MeshStandardMaterial({color,roughness:0.4,metalness:0.3,emissive:color,emissiveIntensity:0.3}));bump.position.set(p[0],p[1],p[2]);g.add(bump);
+  });
+  g.add(new THREE.Mesh(new THREE.IcosahedronGeometry(1.15,1),new THREE.MeshBasicMaterial({color:0xfde68a,wireframe:true,transparent:true,opacity:0.22})));
+  return g;
+}
+
+function buildForm(color=0x60a5fa){
+  const g=new THREE.Group();
+  g.add(new THREE.Mesh(new THREE.BoxGeometry(1.3,1.7,0.08),new THREE.MeshStandardMaterial({color:0xf9fafb,roughness:0.7})));
+  const clip=new THREE.Mesh(new THREE.BoxGeometry(0.45,0.16,0.14),new THREE.MeshStandardMaterial({color:0x4b5563,metalness:0.7}));clip.position.set(0,0.82,0.06);g.add(clip);
+  const logo=new THREE.Mesh(new THREE.BoxGeometry(1.1,0.18,0.02),new THREE.MeshStandardMaterial({color,emissive:color,emissiveIntensity:0.6}));logo.position.set(0,0.55,0.06);g.add(logo);
+  for(let i=0;i<5;i++){
+    const line=new THREE.Mesh(new THREE.BoxGeometry(1.0,0.04,0.01),new THREE.MeshStandardMaterial({color:0x9ca3af}));line.position.set(0,0.25-i*0.2,0.06);g.add(line);
+    const box=new THREE.Mesh(new THREE.BoxGeometry(0.95,0.1,0.015),new THREE.MeshStandardMaterial({color:0xe5e7eb}));box.position.set(0,0.17-i*0.2,0.062);g.add(box);
+  }
+  return g;
+}
+
+function buildClassroomScreen(color=0x34a853){
+  const g=new THREE.Group();
+  const mon=buildMonitor(1.5,1.0,color);g.add(mon);
+  const cb=new THREE.Mesh(new THREE.CylinderGeometry(0.18,0.18,0.12,12),new THREE.MeshStandardMaterial({color:0x1f2937}));cb.position.y=0.7;g.add(cb);
+  const ct=new THREE.Mesh(new THREE.BoxGeometry(0.65,0.05,0.65),new THREE.MeshStandardMaterial({color:0x1f2937}));ct.position.y=0.78;g.add(ct);
+  const ts=new THREE.Mesh(new THREE.CylinderGeometry(0.012,0.012,0.22,4),new THREE.MeshStandardMaterial({color:0xfbbf24,emissive:0xfbbf24,emissiveIntensity:0.4}));ts.position.set(0.3,0.67,0);g.add(ts);
+  return g;
+}
+
+function buildPhoneApp(color=0xec4899){
+  const g=new THREE.Group();
+  g.add(new THREE.Mesh(new THREE.BoxGeometry(0.7,1.3,0.12),new THREE.MeshStandardMaterial({color:0x1f2937,roughness:0.35})));
+  const screen=new THREE.Mesh(new THREE.PlaneGeometry(0.6,1.15),new THREE.MeshBasicMaterial({color,transparent:true,opacity:0.88}));screen.position.z=0.07;g.add(screen);
+  for(let r=0;r<4;r++)for(let c=0;c<3;c++){
+    const ic=new THREE.Mesh(new THREE.BoxGeometry(0.12,0.12,0.012),new THREE.MeshBasicMaterial({color:new THREE.Color().setHSL((r*3+c)/12,0.7,0.65)}));
+    ic.position.set(-0.18+c*0.18,0.4-r*0.22,0.08);g.add(ic);
+  }
+  return g;
+}
+
+function buildDocumentAssembly(color=0x10b981){
+  const g=new THREE.Group();
+  for(let i=0;i<4;i++){
+    const doc=new THREE.Mesh(new THREE.BoxGeometry(0.9,1.15,0.03),new THREE.MeshStandardMaterial({color:0xf9fafb,roughness:0.6}));
+    doc.position.set(i*0.06-0.09,-i*0.05,-i*0.03);doc.rotation.z=(i-1.5)*0.04;g.add(doc);
+    const hdr=new THREE.Mesh(new THREE.BoxGeometry(0.7,0.08,0.005),new THREE.MeshStandardMaterial({color,emissive:color,emissiveIntensity:0.4}));
+    hdr.position.set(i*0.06-0.09,-i*0.05+0.45,-i*0.03+0.02);hdr.rotation.z=(i-1.5)*0.04;g.add(hdr);
+  }
+  return g;
+}
+
+function buildTopicCrystal(color,size=0.9,state='future'){
+  const g=new THREE.Group();
+  const cfg={done:{opacity:1,emissiveIntensity:0.45,scale:1.0},current:{opacity:1,emissiveIntensity:0.7,scale:1.15},future:{opacity:0.55,emissiveIntensity:0.15,scale:0.85}}[state];
+  const crystal=new THREE.Mesh(new THREE.OctahedronGeometry(size,0),new THREE.MeshStandardMaterial({color,roughness:0.2,metalness:0.5,emissive:color,emissiveIntensity:cfg.emissiveIntensity,transparent:true,opacity:cfg.opacity}));
+  crystal.scale.setScalar(cfg.scale);g.add(crystal);
+  const core=new THREE.Mesh(new THREE.OctahedronGeometry(size*0.5,0),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:0.4}));core.scale.setScalar(cfg.scale);g.add(core);
+  const ring=new THREE.Mesh(new THREE.RingGeometry(size*0.8,size*1.25,24),new THREE.MeshBasicMaterial({color,transparent:true,opacity:state==='done'?0.4:state==='current'?0.6:0.15,side:THREE.DoubleSide}));
+  ring.rotation.x=-Math.PI/2;ring.position.y=-size*1.1;g.add(ring);
+  return g;
+}
+
+function buildSubtopicNode(color,size=0.45){
+  const g=new THREE.Group();
+  g.add(new THREE.Mesh(new THREE.IcosahedronGeometry(size,0),new THREE.MeshStandardMaterial({color,roughness:0.25,metalness:0.4,emissive:color,emissiveIntensity:0.35})));
+  return g;
+}
+
+function buildFocusArea(color,type='document'){
+  const g=new THREE.Group();
+  if(type==='workbook')return buildBook(0.4,color);
+  if(type==='test'){
+    const b=new THREE.Mesh(new THREE.BoxGeometry(0.45,0.55,0.06),new THREE.MeshStandardMaterial({color,roughness:0.5,emissive:color,emissiveIntensity:0.25}));g.add(b);
+    const clip=new THREE.Mesh(new THREE.BoxGeometry(0.15,0.06,0.08),new THREE.MeshStandardMaterial({color:0x6b7280,metalness:0.6}));clip.position.set(0,0.25,0.04);g.add(clip);
+  }else if(type==='link'){
+    const l1=new THREE.Mesh(new THREE.TorusGeometry(0.18,0.04,8,16),new THREE.MeshStandardMaterial({color,metalness:0.7,emissive:color,emissiveIntensity:0.3}));l1.position.x=-0.1;l1.rotation.y=Math.PI/4;g.add(l1);
+    const l2=new THREE.Mesh(new THREE.TorusGeometry(0.18,0.04,8,16),new THREE.MeshStandardMaterial({color,metalness:0.7,emissive:color,emissiveIntensity:0.3}));l2.position.x=0.1;l2.rotation.y=Math.PI/4;g.add(l2);
+  }else{
+    const b=new THREE.Mesh(new THREE.BoxGeometry(0.4,0.52,0.04),new THREE.MeshStandardMaterial({color:0xf9fafb,roughness:0.6}));g.add(b);
+    const stripe=new THREE.Mesh(new THREE.BoxGeometry(0.4,0.1,0.042),new THREE.MeshStandardMaterial({color,emissive:color,emissiveIntensity:0.4}));stripe.position.y=0.22;g.add(stripe);
+  }
+  return g;
+}
+
+function buildConnector(from,to,color=0x60a5fa,thickness=0.04){
+  const dir=new THREE.Vector3().subVectors(to,from);
+  const len=dir.length();
+  const mesh=new THREE.Mesh(new THREE.CylinderGeometry(thickness,thickness,len,8),new THREE.MeshBasicMaterial({color,transparent:true,opacity:0.85}));
+  mesh.position.copy(from).add(dir.multiplyScalar(0.5));
+  mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),to.clone().sub(from).normalize());
+  return mesh;
+}
+
+function buildScoreOrb(color,score,label){
+  const g=new THREE.Group();
+  const sphere=new THREE.Mesh(new THREE.SphereGeometry(0.65,20,20),new THREE.MeshStandardMaterial({color,roughness:0.2,metalness:0.5,emissive:color,emissiveIntensity:0.4,transparent:true,opacity:0.9}));
+  g.add(sphere);
+  const ring=new THREE.Mesh(new THREE.TorusGeometry(0.72,0.04,8,24),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:0.35}));ring.rotation.x=Math.PI/2;g.add(ring);
+  return g;
+}
+// ============================================================
+// SCENES
+// ============================================================
+const scenes={};
+
+// ============================================================
+// SCENE 1: The Problem
+// ============================================================
+scenes.problem={
+  hats:[],heather:null,
+  enter(){
+    orbitState.theta=0;orbitState.phi=Math.PI/2.3;orbitState.radius=24;orbitState.target.set(0,1,0);updateCamera();
+    this.heather=buildHeather();this.heather.position.y=0;scene.add(this.heather);
+    const hl=makeLabel('Heather','#60a5fa',1.0);hl.position.set(0,-2.2,0);scene.add(hl);
+    const floor=new THREE.Mesh(new THREE.CircleGeometry(13,48),new THREE.MeshBasicMaterial({color:0x1e3a5f,transparent:true,opacity:0.25}));
+    floor.rotation.x=-Math.PI/2;floor.position.y=-2.8;scene.add(floor);
+    this.hats=[];
+    HATS.forEach((hat,i)=>{
+      const angle=(i/HATS.length)*Math.PI*2,radius=7.5+Math.sin(i*0.8)*1.2,height=Math.sin(i*0.6)*2.2+2;
+      const color=CATEGORY_COLORS[hat.category];
+      let obj;
+      if(hat.category==='operations')obj=buildGear(0.45,color);
+      else if(hat.category==='content')obj=buildBook(0.5,color);
+      else if(hat.category==='coaching')obj=buildDialogueBubble(color);
+      else obj=buildCompass(color);
+      obj.position.set(Math.cos(angle)*radius,height,Math.sin(angle)*radius);
+      obj.userData={hat,index:i,baseAngle:angle,baseRadius:radius,baseHeight:height};
+      scene.add(obj);
+      const label=makeLabel(hat.short,'#e5e7eb',0.38);label.position.copy(obj.position);label.position.y+=1.1;scene.add(label);
+      this.hats.push({obj,label});
+    });
+    panel.innerHTML=`<h2>The Problem</h2><p class="lead">Right now, Heather IS the system. Every assessment, every weekly homework grade, every coaching decision runs through one person.</p>
+      <div class="scoreboard"><div class="score-tile"><div class="num">75+</div><div class="lbl">Hrs / Cohort</div></div><div class="score-tile"><div class="num">18</div><div class="lbl">Distinct Hats</div></div><div class="score-tile"><div class="num">0</div><div class="lbl">Memory Beyond Her</div></div></div>
+      <h3>The Math</h3><p><strong>75 hours</strong> per cohort on monthly assessments alone. Add weekly homework grading (25 participants &times; 48 weekly assignments = 1,200 submissions per cohort) and the load roughly doubles.</p>
+      <h3>Object Legend</h3>
+      <div class="legend-row"><div class="legend-dot" style="background:#ef4444"></div>&#9881; Operations &mdash; gears</div>
+      <div class="legend-row"><div class="legend-dot" style="background:#f59e0b"></div>&#128218; Content &mdash; books</div>
+      <div class="legend-row"><div class="legend-dot" style="background:#8b5cf6"></div>&#128172; Coaching &mdash; dialogue bubbles</div>
+      <div class="legend-row"><div class="legend-dot" style="background:#10b981"></div>&#129517; Strategic &mdash; compasses</div>
+      <h3>Interact</h3><p style="color:var(--accent-2)">Click any object for the specific responsibility it represents.</p><div id="detail-slot"></div>`;
+  },
+  update(){
+    const t=clock.getElapsedTime();
+    this.hats.forEach((h,i)=>{
+      const{baseAngle,baseRadius,baseHeight}=h.obj.userData;
+      const angle=baseAngle+t*0.11;
+      h.obj.position.x=Math.cos(angle)*baseRadius;h.obj.position.z=Math.sin(angle)*baseRadius;
+      h.obj.position.y=baseHeight+Math.sin(t*1.2+i*0.5)*0.2;
+      h.obj.rotation.y=t*0.4+i;
+      h.label.position.copy(h.obj.position);h.label.position.y+=1.1;
+    });
+    if(this.heather)this.heather.rotation.y=Math.sin(t*0.3)*0.2;
+  },
+  onClick(raycaster){
+    const allMeshes=[];
+    this.hats.forEach(h=>h.obj.traverse(m=>{if(m.isMesh){m.userData.hat=h.obj.userData.hat;allMeshes.push(m);}}));
+    const hits=raycaster.intersectObjects(allMeshes);
+    if(hits.length>0){
+      const hat=hits[0].object.userData.hat;if(!hat)return;
+      const slot=document.getElementById('detail-slot');
+      slot.innerHTML=`<div class="detail-box"><div class="title">${hat.full}</div><div class="meta">${hat.category}</div><p>${hat.description}</p>${hat.replacement?`<div style="margin-top:8px;font-size:11px;color:var(--text-dim)"><strong style="color:var(--green-light)">System handles:</strong> ${hat.replacement.detail}</div>`:''}`;
+    }
+  }
+};
+
+// ============================================================
+// SCENE 2: Maria's Journey
+// ============================================================
+scenes.journey={
+  topicNodes:[],subtopicNodes:[],focusNodes:[],decisionNodes:[],pathLines:[],
+  activeTopic:null,activeSubtopic:null,activeFocus:null,maria:null,centerRing:null,
+
+  enter(){
+    orbitState.theta=0;orbitState.phi=Math.PI/2.5;orbitState.radius=32;orbitState.target.set(0,0,0);updateCamera();
+    this.maria=buildMaria();this.maria.scale.setScalar(0.8);this.maria.position.y=-0.5;scene.add(this.maria);
+    const ml=makeLabel(MARIA.name,'#f9a8d4',0.85);ml.position.set(0,-3.2,0);scene.add(ml);
+    const ringGeom=new THREE.RingGeometry(11,11.4,80);
+    this.centerRing=new THREE.Mesh(ringGeom,new THREE.MeshBasicMaterial({color:0x60a5fa,transparent:true,opacity:0.3,side:THREE.DoubleSide}));
+    this.centerRing.rotation.x=-Math.PI/2;this.centerRing.position.y=-2.5;scene.add(this.centerRing);
+    this.topicNodes=[];
+    TAXONOMY.forEach((topic,i)=>{
+      const angle=(i/TAXONOMY.length)*Math.PI*2-Math.PI/2,radius=11;
+      const ms=MARIA.topicScores[topic.name],state=ms?ms.status:'future';
+      const obj=buildTopicCrystal(topic.color,0.85,state);
+      obj.position.set(Math.cos(angle)*radius,0,Math.sin(angle)*radius);
+      obj.userData={topic,angle,radius,baseY:0,state};scene.add(obj);
+      const mlbl=makeLabel(`M${topic.month}`,state==='current'?'#fbbf24':state==='done'?'#34d399':'#6b7280',0.38);
+      mlbl.position.set(Math.cos(angle)*radius,-1.6,Math.sin(angle)*radius);scene.add(mlbl);
+      const nlbl=makeLabel(topic.name,state==='current'?'#f3f4f6':state==='done'?'#d1d5db':'#6b7280',0.42);
+      nlbl.position.set(Math.cos(angle)*(radius+1.8),1.3,Math.sin(angle)*(radius+1.8));scene.add(nlbl);
+      this.topicNodes.push({obj,topic,monthLbl:mlbl,nameLbl:nlbl,angle,radius});
+    });
+    this.pathLines=[];
+    for(let i=0;i<TAXONOMY.length-1;i++){
+      const cur=TAXONOMY[i],nxt=TAXONOMY[i+1];
+      const cs=MARIA.topicScores[cur.name],ns=MARIA.topicScores[nxt.name];
+      if((cs.status==='done'||cs.status==='current')&&(ns.status==='done'||ns.status==='current')){
+        const a1=(i/TAXONOMY.length)*Math.PI*2-Math.PI/2,a2=((i+1)/TAXONOMY.length)*Math.PI*2-Math.PI/2;
+        const p1=new THREE.Vector3(Math.cos(a1)*11,0,Math.sin(a1)*11),p2=new THREE.Vector3(Math.cos(a2)*11,0,Math.sin(a2)*11);
+        const midA=(a1+a2)/2,pm=new THREE.Vector3(Math.cos(midA)*10.2,1.2,Math.sin(midA)*10.2);
+        const tube=new THREE.Mesh(new THREE.TubeGeometry(new THREE.QuadraticBezierCurve3(p1,pm,p2),20,0.1,8,false),new THREE.MeshBasicMaterial({color:0xf9a8d4,transparent:true,opacity:0.8}));
+        scene.add(tube);this.pathLines.push(tube);
+      }
+    }
+    this.showOverview();
+  },
+
+  showOverview(){
+    setBreadcrumb(['Program Overview']);
+    const comp=Object.values(MARIA.topicScores).filter(s=>s.status==='done').length;
+    const cur=TAXONOMY.find(t=>MARIA.topicScores[t.name].status==='current');
+    panel.innerHTML=`<h2>Maria's Journey</h2><p class="lead">The full 12-month curriculum tree. Maria's completed path glows pink; her current topic glows brighter. Click any topic to drill into subtopics and focus areas.</p>
+      <div class="maria-profile"><div class="name">${MARIA.name}</div><div class="biz">${MARIA.business} &mdash; ${MARIA.bizSubtitle}</div><div style="font-size:11px;color:var(--text-dim);line-height:1.5">${MARIA.background}</div>
+      <div class="attrs"><span class="pill" style="background:rgba(236,72,153,0.18);color:#f9a8d4;border:1px solid rgba(236,72,153,0.3)">${MARIA.stageLabel}</span><span class="pill gray">${MARIA.industry}</span><span class="pill yellow">${MARIA.entity}</span><span class="pill blue">Month ${MARIA.programMonth} of ${MARIA.programTotal}</span></div></div>
+      <div class="scoreboard"><div class="score-tile"><div class="num" style="color:#34d399">${comp}</div><div class="lbl">Completed</div></div><div class="score-tile"><div class="num" style="color:#fbbf24">1</div><div class="lbl">In Progress</div></div><div class="score-tile"><div class="num" style="color:#6b7280">${12-comp-1}</div><div class="lbl">Upcoming</div></div></div>
+      <h3>Currently Working On</h3>
+      <div class="detail-box" style="border-left-color:#fbbf24"><div class="title" style="color:#fbbf24">${cur.name}</div><div class="meta">Month ${cur.month} &middot; ${MARIA.topicScores[cur.name].note}</div><p style="margin-top:8px;font-size:11px">Active subtopic: <strong>AI &amp; Automation</strong><br>Active focus area: <strong>Customer Journey Automation Decision Tree</strong></p></div>
+      <h3>The Three Levels</h3><p style="font-size:11px"><strong>Level 1 &mdash; Topic</strong> (12 total, one per month)<br><strong>Level 2 &mdash; Subtopic</strong> (3 per topic)<br><strong>Level 3 &mdash; Focus Area</strong> (3 per subtopic, with documents / workbooks / resources)</p>
+      <p style="font-size:11px;color:var(--accent-2)">Click any topic crystal to drill in.</p>`;
+  },
+
+  clearDrilldown(){
+    [...this.subtopicNodes,...this.focusNodes,...this.decisionNodes].forEach(n=>{
+      scene.remove(n.obj);disposeObject(n.obj);if(n.label)scene.remove(n.label);if(n.connector)scene.remove(n.connector);
+    });
+    this.subtopicNodes=[];this.focusNodes=[];this.decisionNodes=[];
+  },
+
+  drillToTopic(topicData){
+    this.clearDrilldown();this.activeTopic=topicData;this.activeSubtopic=null;this.activeFocus=null;
+    const tn=this.topicNodes.find(n=>n.topic.id===topicData.id);if(!tn)return;
+    const basePos=new THREE.Vector3(Math.cos(tn.angle)*tn.radius,0,Math.sin(tn.angle)*tn.radius);
+    const outDir=basePos.clone().normalize(),tangent=new THREE.Vector3(-outDir.z,0,outDir.x);
+    topicData.subtopics.forEach((sub,i)=>{
+      const pos=basePos.clone().add(outDir.clone().multiplyScalar(3.5)).add(tangent.clone().multiplyScalar((i-1)*2.4));pos.y=1.5;
+      const obj=buildSubtopicNode(topicData.color,0.5);obj.position.copy(pos);
+      if(sub.current)obj.scale.setScalar(1.3);
+      obj.userData={subtopic:sub,topic:topicData};scene.add(obj);
+      const label=makeLabel(sub.name,sub.current?'#fbbf24':'#d1d5db',0.35);label.position.copy(pos);label.position.y+=1.0;scene.add(label);
+      const connector=buildConnector(basePos,pos,topicData.color,0.03);scene.add(connector);
+      this.subtopicNodes.push({obj,label,connector,subtopic:sub,pos});
+    });
+    setBreadcrumb(['Program',`M${topicData.month} ${topicData.name}`]);
+    const ms=MARIA.topicScores[topicData.name];
+    const pill=ms.status==='done'?`<span class="pill green">Completed &middot; Score ${ms.score}%</span>`:ms.status==='current'?`<span class="pill yellow">In Progress</span>`:`<span class="pill gray">Upcoming (Month ${topicData.month})</span>`;
+    panel.innerHTML=`<h2 style="color:#${topicData.color.toString(16).padStart(6,'0')}">${topicData.name}</h2><p class="lead">Month ${topicData.month} of the 12-month curriculum. ${pill}</p>
+      ${ms.flag?`<div class="detail-box" style="border-left-color:#ef4444"><div style="color:#f87171;font-weight:600;font-size:12px">&#9888; Coach Flag</div><p style="margin-top:4px;font-size:11px">${ms.flag}</p></div>`:''}
+      <h3>Subtopics (Level 2)</h3><ul style="margin-top:8px">${topicData.subtopics.map(s=>`<li><strong style="color:${s.current?'#fbbf24':'var(--text)'}">${s.name}</strong>${s.current?' <span class="pill yellow">Active</span>':''}<br><span style="color:var(--text-dim);font-size:10px">${s.focus.length} focus areas</span></li>`).join('')}</ul>
+      <button class="action-btn secondary small" onclick="scenes.journey.showOverview()">&larr; Back to Overview</button>`;
+  },
+
+  drillToSubtopic(subtopicData,topicData){
+    this.focusNodes.forEach(n=>{scene.remove(n.obj);disposeObject(n.obj);if(n.label)scene.remove(n.label);if(n.connector)scene.remove(n.connector);});
+    this.decisionNodes.forEach(n=>{scene.remove(n.obj);disposeObject(n.obj);if(n.label)scene.remove(n.label);if(n.connector)scene.remove(n.connector);});
+    this.focusNodes=[];this.decisionNodes=[];this.activeSubtopic=subtopicData;this.activeFocus=null;
+    const subNode=this.subtopicNodes.find(n=>n.subtopic.name===subtopicData.name);if(!subNode)return;
+    const basePos=subNode.pos.clone();
+    const outDir=basePos.clone().setY(0).normalize(),tangent=new THREE.Vector3(-outDir.z,0,outDir.x);
+    subtopicData.focus.forEach((foc,i)=>{
+      const pos=basePos.clone().add(outDir.clone().multiplyScalar(2.6)).add(tangent.clone().multiplyScalar((i-1)*1.4));pos.y=2.8;
+      const obj=buildFocusArea(topicData.color,foc.type);obj.position.copy(pos);obj.scale.setScalar(foc.current?1.4:1.0);
+      obj.userData={focus:foc,topic:topicData,subtopic:subtopicData};scene.add(obj);
+      const lbl=makeLabel(foc.title.length>24?foc.title.slice(0,22)+'\u2026':foc.title,foc.current?'#fbbf24':'#d1d5db',0.3);
+      lbl.position.copy(pos);lbl.position.y+=0.55;scene.add(lbl);
+      const connector=buildConnector(basePos,pos,topicData.color,0.025);scene.add(connector);
+      this.focusNodes.push({obj,label:lbl,connector,focus:foc,pos});
+    });
+    setBreadcrumb(['Program',`M${topicData.month} ${topicData.name}`,subtopicData.name]);
+    panel.innerHTML=`<h2 style="font-size:18px">${subtopicData.name}</h2><p class="lead">Subtopic under <strong>${topicData.name}</strong>. Three focus areas assigned at this level.</p>
+      <h3>Focus Areas (Level 3)</h3>
+      ${subtopicData.focus.map(foc=>`<div class="resource-item" onclick="scenes.journey.drillToFocus('${foc.title.replace(/'/g,"\\'")}')" style="cursor:pointer"><div class="icon">${foc.type==='workbook'?'📓':foc.type==='test'?'📝':foc.type==='link'?'🔗':'📄'}</div><div class="info"><div class="title">${foc.title}${foc.current?' <span class="pill yellow" style="margin-left:4px">Active</span>':''}</div><div class="meta">${foc.type}</div></div></div>`).join('')}
+      <button class="action-btn secondary small" onclick="scenes.journey.drillToTopic(scenes.journey.activeTopic)">&larr; Back to ${topicData.name}</button>`;
+  },
+
+  drillToFocus(focusTitle){
+    this.decisionNodes.forEach(n=>{scene.remove(n.obj);disposeObject(n.obj);if(n.label)scene.remove(n.label);if(n.connector)scene.remove(n.connector);});
+    this.decisionNodes=[];
+    const foc=this.activeSubtopic.focus.find(f=>f.title===focusTitle);if(!foc)return;
+    this.activeFocus=foc;
+    const topicData=this.activeTopic,subtopicData=this.activeSubtopic;
+    setBreadcrumb(['Program',`M${topicData.month} ${topicData.name}`,subtopicData.name,foc.title]);
+    let treeHTML='';
+    if(foc.current&&foc.title.includes('Decision Tree')){
+      this._buildDecisionTreeVisual();
+      treeHTML=`<h3>Decision Tree &mdash; Maria's Active Work</h3><p style="font-size:11px">Maria is evaluating AI/automation options across four decision branches, filtered by her constraints: pre-revenue budget, Squarespace website, no existing CRM.</p>
+        ${DECISION_TREE.branches.map(b=>`<div class="pipe-section" style="border-left:3px solid #${b.color.toString(16).padStart(6,'0')}"><div class="sub-label" style="color:#${b.color.toString(16).padStart(6,'0')}">${b.name}</div><ul>${b.children.map(c=>`<li><strong>${c.name}</strong><br><span style="color:var(--text-dim);font-size:10px">${c.tools.join(' &middot; ')}</span></li>`).join('')}</ul></div>`).join('')}`;
+    }
+    panel.innerHTML=`<h2 style="font-size:17px">${foc.title}</h2><p class="lead">Focus area &middot; Type: <strong>${foc.type}</strong></p>
+      ${foc.detail?`<div class="detail-box"><p style="font-size:12px">${foc.detail}</p></div>`:''}
+      ${treeHTML}
+      <h3>What's in a Focus Area</h3><p style="font-size:11px">Every focus area is a unit of work: a worksheet, workbook chapter, test, or external resource. The rules engine assigns them based on <code>topic &times; industry &times; stage</code> matching.</p>
+      <button class="action-btn secondary small" onclick="scenes.journey.drillToSubtopic(scenes.journey.activeSubtopic,scenes.journey.activeTopic)">&larr; Back to ${subtopicData.name}</button>`;
+  },
+
+  _buildDecisionTreeVisual(){
+    const afn=this.focusNodes.find(n=>n.focus.current);if(!afn)return;
+    const basePos=afn.pos.clone();
+    const outDir=basePos.clone().setY(0).normalize(),tangent=new THREE.Vector3(-outDir.z,0,outDir.x);
+    DECISION_TREE.branches.forEach((branch,bi)=>{
+      const branchPos=basePos.clone().add(outDir.clone().multiplyScalar(2.5)).add(tangent.clone().multiplyScalar((bi-1.5)*1.8));branchPos.y+=1.5;
+      const bn=new THREE.Mesh(new THREE.SphereGeometry(0.25,12,12),new THREE.MeshStandardMaterial({color:branch.color,emissive:branch.color,emissiveIntensity:0.5}));
+      bn.position.copy(branchPos);scene.add(bn);
+      const lbl=makeLabel(branch.name.length>18?branch.name.slice(0,16)+'\u2026':branch.name,'#'+branch.color.toString(16).padStart(6,'0'),0.28);lbl.position.copy(branchPos);lbl.position.y+=0.5;scene.add(lbl);
+      const conn=buildConnector(basePos,branchPos,branch.color,0.02);scene.add(conn);
+      this.decisionNodes.push({obj:bn,label:lbl,connector:conn});
+      branch.children.forEach((leaf,li)=>{
+        const lp=branchPos.clone().add(outDir.clone().multiplyScalar(1.5)).add(tangent.clone().multiplyScalar((li-1)*0.5));lp.y+=(li-1)*0.6;
+        const ln=new THREE.Mesh(new THREE.BoxGeometry(0.22,0.22,0.22),new THREE.MeshStandardMaterial({color:branch.color,emissive:branch.color,emissiveIntensity:0.3,transparent:true,opacity:0.8}));
+        ln.position.copy(lp);scene.add(ln);
+        const lc=buildConnector(branchPos,lp,branch.color,0.015);scene.add(lc);
+        this.decisionNodes.push({obj:ln,label:null,connector:lc});
+      });
+    });
+  },
+
+  update(){
+    const t=clock.getElapsedTime();
+    this.topicNodes.forEach((n,i)=>{n.obj.rotation.y=t*0.25;n.obj.position.y=Math.sin(t*0.8+i*0.5)*0.2;});
+    this.subtopicNodes.forEach(n=>{n.obj.rotation.y=t*0.3;n.obj.rotation.x=t*0.2;});
+    this.focusNodes.forEach((n,i)=>{n.obj.rotation.y=t*0.4+i;});
+    this.decisionNodes.forEach(n=>{if(n.obj)n.obj.rotation.y=t*0.5;});
+    const pulse=0.6+Math.sin(t*2)*0.2;this.pathLines.forEach(p=>{p.material.opacity=pulse;});
+  },
+
+  onClick(raycaster){
+    const focusMeshes=[];this.focusNodes.forEach(n=>n.obj.traverse(m=>{if(m.isMesh){m.userData.focusNode=n;focusMeshes.push(m);}}));
+    const fh=raycaster.intersectObjects(focusMeshes);
+    if(fh.length>0){this.drillToFocus(fh[0].object.userData.focusNode.focus.title);return;}
+    const subMeshes=[];this.subtopicNodes.forEach(n=>n.obj.traverse(m=>{if(m.isMesh){m.userData.subNode=n;subMeshes.push(m);}}));
+    const sh=raycaster.intersectObjects(subMeshes);
+    if(sh.length>0){this.drillToSubtopic(sh[0].object.userData.subNode.subtopic,this.activeTopic);return;}
+    const topMeshes=[];this.topicNodes.forEach(n=>n.obj.traverse(m=>{if(m.isMesh){m.userData.topicNode=n;topMeshes.push(m);}}));
+    const th=raycaster.intersectObjects(topMeshes);
+    if(th.length>0)this.drillToTopic(th[0].object.userData.topicNode.topic);
+  },
+  exit(){this.clearDrilldown();}
+};
+// ============================================================
+// SCENE 3: Data Flow
+// ============================================================
+scenes.dataflow={
+  nodes:[],sources:[],connectors:[],activeNodeId:null,particles:[],
+
+  enter(){
+    orbitState.theta=0;orbitState.phi=Math.PI/2.2;orbitState.radius=26;orbitState.target.set(2,0,0);updateCamera();
+    this.activeNodeId=null;
+    const srcData=[
+      {id:'zoho',name:'Zoho Form',color:0x60a5fa,y:3,builder:buildForm,detail:'Monthly industry-stage-specific benchmark assessments.',example:"Maria\u2019s Month 5 Tech &amp; Automation assessment (5 questions, 1\u201310 scale)."},
+      {id:'classroom',name:'Google Classroom',color:0x34a853,y:0,builder:buildClassroomScreen,detail:'Delivers curriculum AND accepts homework submissions.',example:"Maria\u2019s Week 4 homework: Customer Journey Decision Tree worksheet."},
+      {id:'app',name:'App / Web Portal',color:0xec4899,y:-3,builder:buildPhoneApp,detail:'Participant-facing progress tracker and quick-response assignments.',example:"Maria\u2019s weekly reflection prompts and progress self-report."},
+    ];
+    this.sources=[];
+    srcData.forEach(src=>{
+      const obj=src.builder(src.color);obj.position.set(-11,src.y,0);obj.userData={source:src};scene.add(obj);
+      const label=makeLabel(src.name,'#'+src.color.toString(16).padStart(6,'0'),0.55);label.position.set(-11,src.y+1.8,0);scene.add(label);
+      this.sources.push({obj,label,src});
+    });
+    const nodeData=[
+      {id:'ingestion',name:'Ingestion',color:0x8b5cf6,x:-5,y:0,builder:()=>buildFunnel(0x8b5cf6)},
+      {id:'rules',name:'Rules Engine',color:0xec4899,x:0,y:0,builder:()=>buildRulesEngine(0xec4899)},
+      {id:'llm',name:'LLM Enrichment',color:0xf59e0b,x:5,y:0,builder:()=>buildBrain(0xf59e0b)},
+      {id:'formatter',name:'Output Formatter',color:0x10b981,x:10,y:0,builder:()=>buildDocumentAssembly(0x10b981)},
+      {id:'dashboard',name:'Dashboard',color:0x3b82f6,x:15,y:0,builder:()=>buildMonitor(1.8,1.2,0x3b82f6)},
+    ];
+    this.nodes=[];
+    nodeData.forEach(nd=>{
+      const obj=nd.builder();obj.position.set(nd.x,nd.y,0);obj.userData={node:nd};scene.add(obj);
+      const label=makeLabel(nd.name,'#'+nd.color.toString(16).padStart(6,'0'),0.6);label.position.set(nd.x,nd.y+2.3,0);scene.add(label);
+      this.nodes.push({obj,label,data:nd});
+    });
+    this.connectors=[];
+    this.sources.forEach(s=>{
+      const line=buildConnector(new THREE.Vector3(-10,s.src.y,0),new THREE.Vector3(-6,0,0),s.src.color,0.05);scene.add(line);this.connectors.push(line);
+    });
+    [[new THREE.Vector3(-4,0,0),new THREE.Vector3(-1.5,0,0),0xa78bfa],[new THREE.Vector3(1.5,0,0),new THREE.Vector3(3.8,0,0),0xf472b6],[new THREE.Vector3(6.2,0,0),new THREE.Vector3(8.8,0,0),0xfcd34d],[new THREE.Vector3(11,0,0),new THREE.Vector3(13.8,0,0),0x34d399]].forEach(([a,b,c])=>{
+      const line=buildConnector(a,b,c,0.06);scene.add(line);this.connectors.push(line);
+    });
+    this.particles=[];
+    for(let i=0;i<30;i++){
+      const p=new THREE.Mesh(new THREE.SphereGeometry(0.12,8,8),new THREE.MeshBasicMaterial({color:0x60a5fa,transparent:true,opacity:0.9}));
+      p.userData={t:Math.random(),speed:0.2+Math.random()*0.1};scene.add(p);this.particles.push(p);
+    }
+    this.showOverview();
+  },
+
+  showOverview(){
+    setBreadcrumb(null);this.activeNodeId=null;
+    panel.innerHTML=`<h2>Data Flow</h2><p class="lead">Three ingestion sources feeding a five-stage pipeline. Click any node in the 3D view to expand it &mdash; see inputs, decisions, outputs, and a live example from Maria's journey.</p>
+      <h3>Sources (left)</h3>
+      <div class="legend-row"><div class="legend-bar" style="background:#60a5fa"></div>Zoho Form &mdash; monthly assessments</div>
+      <div class="legend-row"><div class="legend-bar" style="background:#34a853"></div>Google Classroom &mdash; content + homework</div>
+      <div class="legend-row"><div class="legend-bar" style="background:#ec4899"></div>App / Web Portal &mdash; check-ins + progress</div>
+      <h3>Pipeline (center &rarr; right)</h3>
+      <p style="font-size:11px">1. <strong>Ingestion</strong> &rarr; 2. <strong>Rules Engine</strong> &rarr; 3. <strong>LLM Enrichment</strong> &rarr; 4. <strong>Output Formatter</strong> &rarr; 5. <strong>Dashboard</strong></p>
+      <h3>Design Principles</h3>
+      <ul>
+        <li><strong>Source-agnostic ingestion.</strong> Any source can feed any participant. Schema validation normalizes them into a common format.</li>
+        <li><strong>Deterministic &rarr; probabilistic separation.</strong> Rules engine is deterministic; LLM is strictly enrichment. You can always audit why a rule fired.</li>
+        <li><strong>Provider-agnostic LLM.</strong> Azure OpenAI, AWS Bedrock, Anthropic, or self-hosted &mdash; the system only needs API keys.</li>
+      </ul>
+      <p style="color:var(--accent-2);font-size:12px">Click any node in the 3D view to expand its internals.</p>`;
+  },
+
+  expandNode(nodeId){
+    this.activeNodeId=nodeId;
+    const nd=this.nodes.find(n=>n.data.id===nodeId);
+    setBreadcrumb(['Data Flow',nd.data.name]);
+    const details={
+      ingestion:{name:'Ingestion',color:'#8b5cf6',
+        role:'Normalizes payloads from all three sources into a common format and routes them to the rules engine.',
+        inputs:['Zoho Form webhook (POST /ingest/assessment)','Google Classroom submissions via Classroom API poll','App / Web Portal direct submission (authenticated session)'],
+        decisions:['Schema validation (reject malformed)','Authentication check (API key or OAuth token)','Source-type detection (assessment vs. homework vs. check-in)','Participant ID resolution (cross-source identity)','Deduplication (ignore re-submissions within 60s)','Queue routing: assessment &rarr; monthly; homework &rarr; weekly; check-in &rarr; instant'],
+        outputs:['Normalized event envelope on internal event bus','Audit log entry with source, participant ID, timestamp','Retry queue entry on failure (exponential backoff)'],
+        example:"Maria submits her Week 4 homework via Google Classroom. The Classroom poller picks it up within 60 seconds, validates the submission, resolves Maria\u2019s participant ID from her Google email, detects it as homework (not assessment), routes it to the weekly queue, and fires a normalized <code>HomeworkSubmitted</code> event."
+      },
+      rules:{name:'Rules Engine',color:'#ec4899',
+        role:'Deterministic dispatch on topic &times; industry &times; stage. Applies benchmark rules (monthly) and homework rubrics (weekly).',
+        inputs:['Normalized event from ingestion','Compiled runtime config from versioned benchmark spreadsheet','Participant profile (industry, stage, cohort, program month)','Participant history (previous scores, completed focus areas)'],
+        decisions:['Dispatch on 3 keys: <code>topic &times; industry &times; stage</code>','For assessments: fire benchmark rules, collect focus area assignments','For homework: look up rubric (keyed by assignment ID + stage)','Risk scoring: aggregate firings into Red/Yellow/Green per topic','Trajectory check: compare against historical scores'],
+        outputs:['Structured rule firings with metadata (which rule, why, severity)','Focus area assignments (documents, workbooks, tests)','Rubric package for LLM homework grading','Per-topic risk scores written to participant record'],
+        example:"Maria\u2019s Month 5 Tech &amp; Automation assessment arrives. Rules engine dispatches on <code>tech &times; restaurant &times; pre_revenue</code>. Three rules fire: R01 (Q2 &lt; 5 &rarr; ROI worksheet), R02 (Q3 &lt; 5 &rarr; customer data baseline), R03 (Q1 &lt; 6 AND Q5 &lt; 7 &rarr; tech stack checklist). Risk for this topic: Yellow."
+      },
+      llm:{name:'LLM Enrichment',color:'#f59e0b',
+        role:'Provider-agnostic natural-language layer. Grades homework against rubrics and adds industry/stage context to deterministic outputs.',
+        inputs:['Rule firings from Rules Engine (for context enrichment)','Homework submission + rubric package (for grading)','Participant industry + stage (for context)','Provider config: Azure OpenAI / AWS Bedrock / Anthropic / self-hosted'],
+        decisions:['Route to configured provider via <code>LLM_PROVIDER</code> env var','For homework: apply rubric via guardrailed prompt, emit structured score + narrative feedback','For enrichment: generate 2\u20133 sentences of industry-specific context per rule firing','Guardrails: temperature 0.2 for grading, 0.4 for enrichment; JSON schema validation','Fallback: if provider unavailable, queue and retry; on hard failure, emit deterministic-only output with flag'],
+        outputs:['Homework scores (0\u201310 or pass/fail) with narrative feedback','Enriched rule firings with industry/stage context','Model/provider attribution logged for audit','Token usage counters for cost tracking'],
+        example:"Maria\u2019s Decision Tree worksheet is graded against the Thrive rubric. Score: 7/10. Feedback: cost analysis is strong but CRM integration choices don\u2019t match her current Squarespace stack. The grade feeds her competency dashboard; the feedback goes into her coach summary."
+      },
+      formatter:{name:'Output Formatter',color:'#10b981',
+        role:'Assembles final artifacts from deterministic rule output + LLM enrichment into participant-facing and coach-facing documents.',
+        inputs:['Rule firings (with enrichment from LLM)','Homework scores (with narrative feedback from LLM)','Participant profile and historical context','Template library (action plan, coach summary, weekly update)'],
+        decisions:['Select output format (email, in-app notification, PDF, dashboard card)','Prioritize and sequence content (highest-risk items first)','Apply Thrive branding and tone','Resolve internal links to focus area resources','Determine delivery channel (email to coach, push to app, post to Classroom)'],
+        outputs:['Participant action plan (HTML + PDF)','Coach summary with top 2\u20133 flags','Weekly progress update for participant','Dashboard data payload (JSON)'],
+        example:"Maria\u2019s Month 5 assessment + Week 4 homework results are assembled into: (1) her action plan with the three assigned focus areas, (2) a coach summary flagging her CRM integration weakness for Heather\u2019s next session, (3) a dashboard payload updating her Tech &amp; Automation score to Yellow."
+      },
+      dashboard:{name:'Dashboard',color:'#3b82f6',
+        role:'Presentation layer. Three views: participant, coach, admin. Real-time data from the formatter.',
+        inputs:['Formatted payloads from Output Formatter','Direct queries to participant database (for historical views)','User identity + role (determines which view to serve)'],
+        decisions:['View routing based on role (participant / coach / admin)','Real-time vs. cached rendering (risk scores always live; historical trends cached)','Filter and sort (coach dashboard: rank by risk; admin: by cohort)','Export generation (board reports, funder summaries, cohort CSVs)'],
+        outputs:['Participant dashboard: scores, action plan, homework status, next assignment','Coach dashboard: all participants ranked by risk, top flags, upcoming sessions','Admin dashboard: cohort health, export controls, rule audit log','Embedded links to all assigned documents and workbooks'],
+        example:"Heather opens the coach dashboard the morning of her Maria session. She sees Maria\u2019s Tech &amp; Automation topic is Yellow, with the CRM integration flag at the top. One click shows the rule that fired (R02, Q3 &lt; 5), the homework score (7/10), and the three assigned focus areas Maria should complete before their call."
+      }
+    };
+    const d=details[nodeId];
+    if(!d){this.showOverview();return;}
+    panel.innerHTML=`<h2 style="color:${d.color}">${d.name}</h2><p class="lead">${d.role}</p>
+      <div class="pipe-sections">
+        <div class="pipe-section"><div class="sub-label">Inputs</div><ul>${d.inputs.map(i=>`<li>${i}</li>`).join('')}</ul></div>
+        <div class="pipe-section"><div class="sub-label">Decisions Made</div><ul>${d.decisions.map(i=>`<li>${i}</li>`).join('')}</ul></div>
+        <div class="pipe-section"><div class="sub-label">Outputs</div><ul>${d.outputs.map(i=>`<li>${i}</li>`).join('')}</ul></div>
+      </div>
+      <h3>Maria's Example</h3>
+      <div class="detail-box"><p style="font-size:12px">${d.example}</p></div>
+      <button class="action-btn secondary small" onclick="scenes.dataflow.showOverview()">&larr; Back to Overview</button>`;
+  },
+
+  update(){
+    const t=clock.getElapsedTime();
+    const pipeline=[[-11,3],[-11,0],[-11,-3],[-5,0],[0,0],[5,0],[10,0],[15,0]];
+    this.particles.forEach((p,i)=>{
+      p.userData.t=(p.userData.t+p.userData.speed*0.008)%1;
+      const tt=p.userData.t;
+      const seg=Math.floor(tt*(pipeline.length-1)),frac=(tt*(pipeline.length-1))%1;
+      const s=pipeline[Math.min(seg,pipeline.length-2)],e2=pipeline[Math.min(seg+1,pipeline.length-1)];
+      p.position.set(s[0]+(e2[0]-s[0])*frac,s[1]+(e2[1]-s[1])*frac+Math.sin(tt*Math.PI*6)*0.15,Math.sin(i+t)*0.3);
+      p.material.opacity=0.5+Math.sin(t*3+i)*0.3;
+    });
+    this.nodes.forEach((n,i)=>{n.obj.rotation.y=t*0.15+i;});
+  },
+
+  onClick(raycaster){
+    const meshes=[];
+    this.nodes.forEach(n=>n.obj.traverse(m=>{if(m.isMesh){m.userData.nodeRef=n.data;meshes.push(m);}}));
+    const hits=raycaster.intersectObjects(meshes);
+    if(hits.length>0){const nd=hits[0].object.userData.nodeRef;if(nd)this.expandNode(nd.id);}
+  }
+};
+// ============================================================
+// SCENE 4: Student View (Maria's Dashboard)
+// ============================================================
+scenes.student={
+  orbs:[],mariaFig:null,hwStack:null,labels:[],
+
+  enter(){
+    orbitState.theta=0;orbitState.phi=Math.PI/2.4;orbitState.radius=20;orbitState.target.set(0,0,0);updateCamera();
+    this.mariaFig=buildMaria();this.mariaFig.scale.setScalar(0.9);scene.add(this.mariaFig);
+    const ml=makeLabel(MARIA.name,'#f9a8d4',0.8);ml.position.set(0,-2.8,0);scene.add(ml);
+    this.orbs=[];this.labels=[];
+    const completed=TAXONOMY.filter(t=>['done','current'].includes(MARIA.topicScores[t.name].status));
+    completed.forEach((topic,i)=>{
+      const angle=(i/completed.length)*Math.PI*2-Math.PI/2;
+      const radius=6.5;
+      const ms=MARIA.topicScores[topic.name];
+      const riskColor=ms.risk==='red'?0xef4444:ms.risk==='yellow'?0xf59e0b:ms.risk==='green'?0x10b981:0x3b82f6;
+      const orb=buildScoreOrb(riskColor,ms.score,topic.name);
+      orb.position.set(Math.cos(angle)*radius,1.5,Math.sin(angle)*radius);
+      orb.userData={topic,ms,baseAngle:angle,baseRadius:radius};
+      scene.add(orb);
+      const sl=makeLabel(topic.name.split(' ')[0],'#'+riskColor.toString(16).padStart(6,'0'),0.38);
+      sl.position.set(Math.cos(angle)*radius,3.0,Math.sin(angle)*radius);scene.add(sl);
+      const scoreLbl=makeLabel(ms.score?`${ms.score}%`:'\u2022\u2022\u2022','#f3f4f6',0.42);
+      scoreLbl.position.set(Math.cos(angle)*radius,1.5,Math.sin(angle)*radius);scene.add(scoreLbl);
+      this.orbs.push({orb,sl,scoreLbl,topic,ms,angle,radius});
+      this.labels.push(sl,scoreLbl);
+    });
+    // Active assignment floating above
+    const activeBox=new THREE.Mesh(new THREE.BoxGeometry(2.2,1.4,0.08),new THREE.MeshStandardMaterial({color:0x1e3a5f,roughness:0.5}));
+    activeBox.position.set(0,5.5,0);scene.add(activeBox);
+    const activeGlow=new THREE.Mesh(new THREE.BoxGeometry(2.3,1.5,0.04),new THREE.MeshBasicMaterial({color:0x3b82f6,transparent:true,opacity:0.25}));
+    activeGlow.position.set(0,5.5,-0.07);scene.add(activeGlow);
+    const aLbl=makeLabel('Active: Decision Tree','#fbbf24',0.48);aLbl.position.set(0,6.4,0);scene.add(aLbl);
+    this.hwStack=activeBox;
+    this._renderPanel();
+  },
+
+  _renderPanel(){
+    const comp=Object.values(MARIA.topicScores).filter(s=>s.status==='done');
+    const avgScore=Math.round(comp.reduce((a,s)=>a+(s.score||0),0)/comp.length);
+    const flags=comp.filter(s=>s.risk==='red').length;
+    panel.innerHTML=`<h2>Maria's Dashboard</h2><p class="lead">What Maria sees when she logs in. Her competency scores, active homework, and next focus areas &mdash; all generated by the pipeline with zero manual work from Heather.</p>
+      <div class="maria-profile"><div class="name">${MARIA.name}</div><div class="biz">${MARIA.business} &mdash; ${MARIA.bizSubtitle}</div>
+        <div class="attrs"><span class="pill" style="background:rgba(236,72,153,0.18);color:#f9a8d4;border:1px solid rgba(236,72,153,0.3)">${MARIA.stageLabel}</span><span class="pill blue">Month ${MARIA.programMonth} of ${MARIA.programTotal}</span><span class="pill gray">${MARIA.monthsToOpen} mo to open</span></div></div>
+      <div class="dash-grid">
+        <div class="dash-card"><div class="label">Avg Score</div><div class="value">${avgScore}%</div><div class="sub">across ${comp.length} completed topics</div></div>
+        <div class="dash-card"><div class="label">Active Flags</div><div class="value" style="color:#f87171">${flags}</div><div class="sub">red-risk topics</div></div>
+        <div class="dash-card"><div class="label">Weeks Complete</div><div class="value">3/4</div><div class="sub">Month 5 homework</div></div>
+        <div class="dash-card"><div class="label">Opens In</div><div class="value">${MARIA.monthsToOpen}</div><div class="sub">months</div></div>
+      </div>
+      <h3>Topic Scores (click orbs in 3D)</h3>
+      ${TAXONOMY.map(t=>{
+        const ms=MARIA.topicScores[t.name];
+        const riskCol=ms.risk==='red'?'var(--red-light)':ms.risk==='yellow'?'var(--yellow-light)':ms.risk==='green'?'var(--green-light)':'var(--text-dimmer)';
+        return `<div class="topic-risk-row${ms.status==='future'?' future':''}">
+          <div class="topic-name">M${ms.month} ${t.name}</div>
+          <div>${ms.status==='done'||ms.status==='current'?`<span class="pill ${ms.risk||'gray'}">${ms.risk||'—'}</span>`:''}</div>
+          <div class="score" style="color:${riskCol}">${ms.score?ms.score+'%':ms.status==='current'?'<span style="color:#fbbf24">Active</span>':'&mdash;'}</div>
+        </div>`;
+      }).join('')}
+      <h3>Current Month Homework</h3>
+      ${MARIA.homework.map(hw=>`<div class="hw-row ${hw.done?'done':hw.current?'current':''}">
+        <div class="check"></div>
+        <div>${hw.title}</div>
+        <div class="score-inline">${hw.score}</div>
+      </div>`).join('')}`;
+  },
+
+  update(){
+    const t=clock.getElapsedTime();
+    this.orbs.forEach((o,i)=>{
+      o.orb.position.y=1.5+Math.sin(t*0.9+i*0.7)*0.25;
+      o.orb.rotation.y=t*0.3;
+      o.sl.position.y=3.0+Math.sin(t*0.9+i*0.7)*0.25;
+      o.scoreLbl.position.y=1.5+Math.sin(t*0.9+i*0.7)*0.25;
+    });
+    if(this.mariaFig)this.mariaFig.rotation.y=Math.sin(t*0.2)*0.15;
+    if(this.hwStack){this.hwStack.rotation.y=t*0.2;this.hwStack.position.y=5.5+Math.sin(t*0.6)*0.1;}
+  },
+
+  onClick(raycaster){
+    const meshes=[];this.orbs.forEach(o=>o.orb.traverse(m=>{if(m.isMesh){m.userData.orbRef=o;meshes.push(m);}}));
+    const hits=raycaster.intersectObjects(meshes);
+    if(hits.length>0){
+      const o=hits[0].object.userData.orbRef;if(!o)return;
+      const slot=document.getElementById('orb-detail')||document.createElement('div');
+      slot.id='orb-detail';
+      const ms=o.ms,t=o.topic;
+      slot.innerHTML=`<div class="detail-box" style="border-left-color:${ms.risk==='red'?'var(--red)':ms.risk==='yellow'?'var(--yellow)':'var(--green)'}">
+        <div class="title">${t.name}</div><div class="meta">Month ${ms.month} &middot; ${ms.status}</div>
+        ${ms.score?`<div style="margin-top:8px">Score: <strong style="font-size:16px">${ms.score}%</strong></div><div class="progress-bar ${ms.risk}" style="margin-top:6px"><div class="fill" style="width:${ms.score}%"></div></div>`:'<p style="font-size:11px;margin-top:6px">In progress</p>'}
+        ${ms.flag?`<p style="font-size:11px;color:var(--red-light);margin-top:6px">&#9888; ${ms.flag}</p>`:''}
+      </div>`;
+      if(!document.getElementById('orb-detail'))panel.appendChild(slot);
+    }
+  }
+};
+
+// ============================================================
+// SCENE 5: Coach View (Heather's Dashboard)
+// ============================================================
+scenes.coaching={
+  heatherFig:null,mariaCard:null,riskFlags:[],labels:[],
+
+  enter(){
+    orbitState.theta=0.3;orbitState.phi=Math.PI/2.3;orbitState.radius=22;orbitState.target.set(0,0,0);updateCamera();
+    this.heatherFig=buildHeather();this.heatherFig.scale.setScalar(1.0);scene.add(this.heatherFig);
+    const hl=makeLabel('Heather','#60a5fa',0.85);hl.position.set(0,-2.5,0);scene.add(hl);
+    // Maria card
+    this.mariaCard=new THREE.Group();
+    const cardBase=new THREE.Mesh(new THREE.BoxGeometry(2.4,3.2,0.12),new THREE.MeshStandardMaterial({color:0x1f2937,roughness:0.4}));
+    this.mariaCard.add(cardBase);
+    const cardHeader=new THREE.Mesh(new THREE.BoxGeometry(2.4,0.6,0.14),new THREE.MeshStandardMaterial({color:0xec4899,emissive:0xec4899,emissiveIntensity:0.3}));
+    cardHeader.position.y=1.3;this.mariaCard.add(cardHeader);
+    // Risk indicators on card
+    const redFlag=new THREE.Mesh(new THREE.SphereGeometry(0.18,12,12),new THREE.MeshStandardMaterial({color:0xef4444,emissive:0xef4444,emissiveIntensity:0.6}));
+    redFlag.position.set(-0.7,0.3,0.1);this.mariaCard.add(redFlag);
+    const yellowFlag=new THREE.Mesh(new THREE.SphereGeometry(0.16,12,12),new THREE.MeshStandardMaterial({color:0xf59e0b,emissive:0xf59e0b,emissiveIntensity:0.5}));
+    yellowFlag.position.set(0,0.3,0.1);this.mariaCard.add(yellowFlag);
+    const yellowFlag2=new THREE.Mesh(new THREE.SphereGeometry(0.16,12,12),new THREE.MeshStandardMaterial({color:0xf59e0b,emissive:0xf59e0b,emissiveIntensity:0.5}));
+    yellowFlag2.position.set(0.7,0.3,0.1);this.mariaCard.add(yellowFlag2);
+    this.mariaCard.position.set(7,1,0);scene.add(this.mariaCard);
+    const mcl=makeLabel(MARIA.name,'#f9a8d4',0.6);mcl.position.set(7,3.6,0);scene.add(mcl);
+    // Pipeline status orbs
+    const pipeline=['Ingestion','Rules Engine','LLM','Formatter','Dashboard'];
+    const pColors=[0x8b5cf6,0xec4899,0xf59e0b,0x10b981,0x3b82f6];
+    this.riskFlags=[];
+    pipeline.forEach((name,i)=>{
+      const orb=new THREE.Mesh(new THREE.SphereGeometry(0.3,14,14),new THREE.MeshStandardMaterial({color:pColors[i],emissive:pColors[i],emissiveIntensity:0.5}));
+      orb.position.set(-7+i*2,-4,0);scene.add(orb);
+      const lbl=makeLabel(name,'#'+pColors[i].toString(16).padStart(6,'0'),0.3);lbl.position.set(-7+i*2,-4.9,0);scene.add(lbl);
+      const greenDot=new THREE.Mesh(new THREE.SphereGeometry(0.1,8,8),new THREE.MeshBasicMaterial({color:0x10b981}));greenDot.position.set(-7+i*2,-3.3,0);scene.add(greenDot);
+      this.riskFlags.push({orb,lbl,greenDot});
+    });
+    this._renderPanel();
+  },
+
+  _renderPanel(){
+    panel.innerHTML=`<h2>Heather's Coach View</h2><p class="lead">What Heather sees. Instead of 75 hours of review, she has a prioritized dashboard: top risks surfaced, next coaching touchpoints pre-loaded, homework grades already complete.</p>
+      <div class="scoreboard">
+        <div class="score-tile"><div class="num">1</div><div class="lbl">Participants<br>(Demo)</div></div>
+        <div class="score-tile"><div class="num" style="color:#f87171">1</div><div class="lbl">Red Flags</div></div>
+        <div class="score-tile"><div class="num" style="color:#fbbf24">2</div><div class="lbl">Yellow Flags</div></div>
+      </div>
+      <h3>Maria Rodriguez &mdash; Top Risks</h3>
+      <div class="detail-box" style="border-left-color:#ef4444">
+        <div class="title" style="color:#f87171">&#9888; Legal &amp; Compliance &mdash; 58%</div>
+        <div class="meta">Month 2 &middot; Completed</div>
+        <p style="font-size:11px;margin-top:4px"><strong>No LLC yet.</strong> High priority before brick-and-mortar opening in 8 months. Three assigned focus areas flagged as incomplete.</p>
+      </div>
+      <div class="detail-box" style="border-left-color:#f59e0b">
+        <div class="title" style="color:#fbbf24">Marketing &amp; Brand &mdash; 68%</div>
+        <div class="meta">Month 4 &middot; Completed</div>
+        <p style="font-size:11px;margin-top:4px">Paid channel knowledge gap. Customer persona work is solid; content strategy needs attention.</p>
+      </div>
+      <h3>Pre-Session Coaching Prep (auto-generated)</h3>
+      <div class="pipe-section">
+        <div class="sub-label">Next Session Agenda Items</div>
+        <ul>
+          <li><strong>Tech &amp; Automation (Month 5 in progress)</strong> &mdash; CRM integration decision. Maria scored Q3 at 4/10. Walk her through the CRM selection worksheet and revisit her Decision Tree homework.</li>
+          <li><strong>LLC Formation</strong> &mdash; Check on action plan from Month 2. She has 8 months until opening; entity formation should be complete in 30 days.</li>
+          <li><strong>Check-In: Squarespace integration</strong> &mdash; Week 3 homework identified Squarespace as her current platform. Confirm compatibility with shortlisted tools.</li>
+        </ul>
+      </div>
+      <h3>Pipeline Status</h3>
+      <p style="font-size:11px;color:var(--text-dim)">All five pipeline stages are operational. Last run: Maria\u2019s Week 4 homework submission (10 minutes ago).</p>
+      <div class="legend-row"><div class="legend-dot" style="background:#10b981"></div>Ingestion &mdash; online</div>
+      <div class="legend-row"><div class="legend-dot" style="background:#10b981"></div>Rules Engine &mdash; 3 rules fired this run</div>
+      <div class="legend-row"><div class="legend-dot" style="background:#10b981"></div>LLM Enrichment &mdash; graded in 4.2s</div>
+      <div class="legend-row"><div class="legend-dot" style="background:#10b981"></div>Output Formatter &mdash; action plan generated</div>
+      <div class="legend-row"><div class="legend-dot" style="background:#10b981"></div>Dashboard &mdash; live</div>
+      <h3>Time Reclaimed This Cohort</h3>
+      <div class="dash-grid">
+        <div class="dash-card"><div class="label">Assessment Review</div><div class="value" style="color:#34d399">75h</div><div class="sub">automated</div></div>
+        <div class="dash-card"><div class="label">Homework Grading</div><div class="value" style="color:#34d399">60h</div><div class="sub">automated</div></div>
+        <div class="dash-card"><div class="label">Action Plans</div><div class="value" style="color:#34d399">20h</div><div class="sub">automated</div></div>
+        <div class="dash-card"><div class="label">Still Hers</div><div class="value" style="color:#60a5fa">~15h</div><div class="sub">coaching &amp; strategy</div></div>
+      </div>`;
+  },
+
+  update(){
+    const t=clock.getElapsedTime();
+    if(this.heatherFig)this.heatherFig.rotation.y=Math.sin(t*0.25)*0.2;
+    if(this.mariaCard){this.mariaCard.rotation.y=Math.sin(t*0.3)*0.08;this.mariaCard.position.y=1+Math.sin(t*0.5)*0.15;}
+    this.riskFlags.forEach((r,i)=>{r.greenDot.material.opacity=0.6+Math.sin(t*2+i)*0.4;});
+  },
+  onClick(){}
+};
+// ============================================================
+// SCENE 6: Hats Come Off
+// ============================================================
+scenes.hatsoff={
+  hats:[],heather:null,t0:0,
+
+  enter(){
+    orbitState.theta=0;orbitState.phi=Math.PI/2.3;orbitState.radius=26;orbitState.target.set(0,1,0);updateCamera();
+    this.t0=clock.getElapsedTime();
+    this.heather=buildHeather();this.heather.position.y=0;scene.add(this.heather);
+    const hl=makeLabel('Heather','#60a5fa',0.9);hl.position.set(0,-2.2,0);scene.add(hl);
+    const floor=new THREE.Mesh(new THREE.CircleGeometry(14,48),new THREE.MeshBasicMaterial({color:0x0f2a1a,transparent:true,opacity:0.3}));
+    floor.rotation.x=-Math.PI/2;floor.position.y=-2.8;scene.add(floor);
+    this.hats=[];
+    HATS.forEach((hat,i)=>{
+      const angle=(i/HATS.length)*Math.PI*2;
+      const type=hat.replacement.type;
+      const targetRadius=type==='eliminated'?14:type==='partial'?8.5:5.5;
+      const baseRadius=7.5+Math.sin(i*0.8)*1.2;
+      const color=type==='eliminated'?0x4b5563:type==='partial'?0xf59e0b:0x10b981;
+      const height=Math.sin(i*0.6)*1.5+1.8;
+      let obj;
+      if(hat.category==='operations')obj=buildGear(0.42,color);
+      else if(hat.category==='content')obj=buildBook(0.45,color);
+      else if(hat.category==='coaching')obj=buildDialogueBubble(color);
+      else obj=buildCompass(color);
+      obj.position.set(Math.cos(angle)*baseRadius,height,Math.sin(angle)*baseRadius);
+      obj.userData={hat,angle,baseRadius,targetRadius,height,type,color,baseY:height};
+      scene.add(obj);
+      const labelColor=type==='eliminated'?'#6b7280':type==='partial'?'#fbbf24':'#34d399';
+      const label=makeLabel(hat.short,labelColor,0.35);
+      label.position.copy(obj.position);label.position.y+=1.0;scene.add(label);
+      this.hats.push({obj,label,type});
+    });
+    this._renderPanel();
+  },
+
+  _renderPanel(){
+    const elim=HATS.filter(h=>h.replacement.type==='eliminated');
+    const partial=HATS.filter(h=>h.replacement.type==='partial');
+    const kept=HATS.filter(h=>h.replacement.type==='kept');
+    panel.innerHTML=`<h2>Hats Come Off</h2><p class="lead">The same 18 hats &mdash; but now colored by fate. Watch them drift to their new orbits: <strong style="color:#4b5563">gray = eliminated</strong>, <strong style="color:#fbbf24">yellow = partial</strong>, <strong style="color:#34d399">green = kept</strong>.</p>
+      <div class="scoreboard">
+        <div class="score-tile"><div class="num" style="color:#6b7280">${elim.length}</div><div class="lbl">Eliminated</div></div>
+        <div class="score-tile"><div class="num" style="color:#fbbf24">${partial.length}</div><div class="lbl">Partial</div></div>
+        <div class="score-tile"><div class="num" style="color:#34d399">${kept.length}</div><div class="lbl">Kept</div></div>
+      </div>
+      <h3>Eliminated (System takes full ownership)</h3>
+      ${elim.map(h=>`<div class="hat-fate-row"><div class="hat-fate-dot" style="background:#4b5563"></div><div><strong>${h.full}</strong><br><span style="color:var(--text-dim);font-size:10px">&rarr; ${h.replacement.by}</span></div></div>`).join('')}
+      <h3>Partial (System does heavy lifting; Heather reviews)</h3>
+      ${partial.map(h=>`<div class="hat-fate-row"><div class="hat-fate-dot" style="background:#f59e0b"></div><div><strong>${h.full}</strong><br><span style="color:var(--text-dim);font-size:10px">&rarr; ${h.replacement.by}</span></div></div>`).join('')}
+      <h3>Kept (Heather owns, system supports)</h3>
+      ${kept.map(h=>`<div class="hat-fate-row"><div class="hat-fate-dot" style="background:#10b981"></div><div><strong>${h.full}</strong><br><span style="color:var(--text-dim);font-size:10px">${h.replacement.detail.slice(0,60)}&hellip;</span></div></div>`).join('')}
+      <h3>The Outcome</h3>
+      <p style="font-size:12px">Heather stops being the bottleneck and starts being the <strong>CEO</strong>. The system carries the operational load; she holds strategy, judgment, relationships, and accountability.</p>
+      <p style="font-size:12px">Every green hat above is something the system <em>exists to protect</em> &mdash; these are the things only Heather can do.</p>
+      <div class="detail-box" style="border-left-color:#10b981"><div class="title" style="color:#34d399">From 150 hrs/cohort &rarr; ~15 hrs/cohort</div><p style="font-size:11px;margin-top:4px">Assessment review, homework grading, action plan writing, and coaching summary drafting are fully automated. The 10x time return goes back to Heather for the work that actually grows Thrive.</p></div>
+      <p style="font-size:12px;color:var(--accent-2);margin-top:12px">Click any hat in the 3D view to see exactly how the system handles it.</p><div id="hat-detail"></div>`;
+  },
+
+  update(){
+    const t=clock.getElapsedTime();
+    const elapsed=t-this.t0;
+    const progress=Math.min(elapsed/4,1);// Animate over 4 seconds
+
+    this.hats.forEach((h,i)=>{
+      const{angle,baseRadius,targetRadius,baseY,type}=h.obj.userData;
+      const r=baseRadius+(targetRadius-baseRadius)*progress;
+      const heightTarget=type==='eliminated'?baseY+3:type==='kept'?baseY-1.2:baseY;
+      const ht=baseY+(heightTarget-baseY)*progress;
+      const wobble=Math.sin(t*1.1+i*0.6)*0.18;
+      h.obj.position.x=Math.cos(angle+t*0.07)*r;
+      h.obj.position.z=Math.sin(angle+t*0.07)*r;
+      h.obj.position.y=ht+wobble;
+      h.obj.rotation.y=t*0.3+i;
+      if(type==='eliminated'){
+        const fade=Math.max(0.2,1-progress*0.7);
+        h.obj.traverse(m=>{if(m.material&&m.material.opacity!==undefined)m.material.opacity=fade;});
+      }
+      h.label.position.copy(h.obj.position);h.label.position.y+=1.0;
+    });
+    if(this.heather)this.heather.rotation.y=Math.sin(t*0.25)*0.15;
+  },
+
+  onClick(raycaster){
+    const meshes=[];this.hats.forEach(h=>h.obj.traverse(m=>{if(m.isMesh){m.userData.hatRef=h.obj.userData.hat;meshes.push(m);}}));
+    const hits=raycaster.intersectObjects(meshes);
+    if(hits.length>0){
+      const hat=hits[0].object.userData.hatRef;if(!hat)return;
+      const slot=document.getElementById('hat-detail');if(!slot)return;
+      const col=hat.replacement.type==='eliminated'?'var(--border)':hat.replacement.type==='partial'?'var(--yellow)':'var(--green)';
+      slot.innerHTML=`<div class="detail-box" style="border-left-color:${col}">
+        <div class="title">${hat.full}</div>
+        <div class="meta">${hat.replacement.type==='eliminated'?'&#9746; Fully Automated':hat.replacement.type==='partial'?'&#10003; Partially Automated':'&#9733; Kept by Heather'}</div>
+        <p style="font-size:11px;margin-top:6px">${hat.description}</p>
+        <p style="font-size:11px;margin-top:6px;color:var(--accent-2)"><strong>System role:</strong> ${hat.replacement.detail}</p>
+      </div>`;
+    }
+  }
+};
+
+// ============================================================
+// BOOT
+// ============================================================
+init();
+</script>
+</body>
+</html>
