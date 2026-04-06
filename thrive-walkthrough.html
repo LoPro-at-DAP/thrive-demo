@@ -168,7 +168,7 @@
         <div id="stage-title">The Problem</div>
       </div>
       <div class="breadcrumb" id="breadcrumb" style="display:none;"></div>
-      <div class="overlay-hint" id="hint">Drag to rotate · Scroll to zoom · Click elements for detail</div>
+      <div class="overlay-hint" id="hint">1-finger drag: rotate · 2-finger drag: pan · Pinch: zoom · Tap: select</div>
       <button id="sidebar-toggle" onclick="toggleSidebar()">☰</button>
       <div id="canvas-overlay"><button class="close-btn" onclick="closeOverlay()">×</button><div id="overlay-content"></div></div>
     </div>
@@ -393,15 +393,31 @@ function updateCamera(){
 
 function setupControls(){
   const dom=renderer.domElement;
-  dom.addEventListener('mousedown',e=>{orbitState.dragging=true;orbitState.lastX=e.clientX;orbitState.lastY=e.clientY;mouseDownPos.x=e.clientX;mouseDownPos.y=e.clientY;});
-  window.addEventListener('mouseup',()=>{orbitState.dragging=false;});
+  let isPanning=false;
+  dom.addEventListener('mousedown',e=>{
+    isPanning=e.button===2||e.shiftKey; // right-click or shift+click to pan
+    orbitState.dragging=true;orbitState.lastX=e.clientX;orbitState.lastY=e.clientY;mouseDownPos.x=e.clientX;mouseDownPos.y=e.clientY;
+  });
+  dom.addEventListener('contextmenu',e=>e.preventDefault()); // prevent right-click menu
+  window.addEventListener('mouseup',()=>{orbitState.dragging=false;isPanning=false;});
   window.addEventListener('mousemove',e=>{
     if(!orbitState.dragging)return;
     const dx=e.clientX-orbitState.lastX,dy=e.clientY-orbitState.lastY;
-    orbitState.theta-=dx*0.007;
-    orbitState.phi-=dy*0.007;
-    orbitState.phi=Math.max(0.15,Math.min(Math.PI-0.15,orbitState.phi));
-    orbitState.targetTheta=orbitState.theta;orbitState.targetPhi=orbitState.phi;
+    if(isPanning){
+      // Pan: move target point
+      const panSpeed=0.03*orbitState.radius/20;
+      const right=new THREE.Vector3();const up=new THREE.Vector3();
+      camera.getWorldDirection(up);
+      right.crossVectors(up,camera.up).normalize();
+      up.copy(camera.up).normalize();
+      orbitState.target.addScaledVector(right,-dx*panSpeed);
+      orbitState.target.addScaledVector(up,dy*panSpeed);
+    } else {
+      // Rotate
+      orbitState.theta-=dx*0.007;
+      orbitState.phi-=dy*0.007;
+      orbitState.phi=Math.max(0.15,Math.min(Math.PI-0.15,orbitState.phi));
+    }
     orbitState.lastX=e.clientX;orbitState.lastY=e.clientY;
     updateCamera();
   });
@@ -806,6 +822,11 @@ scenes.journey={
       }
     }
     this.showOverview();
+    // On mobile, show brief intro overlay since panel is hidden
+    if(window.innerWidth<=900){
+      const cur=TAXONOMY.find(t=>MARIA.topicScores[t.name].status==='current');
+      setTimeout(()=>showOverlay(`<h3>Maria's Journey</h3><p>${MARIA.name} — ${MARIA.business}</p><p>Month ${MARIA.programMonth} of ${MARIA.programTotal}. Current: <strong>${cur?cur.name:'—'}</strong></p><p style="color:var(--accent-2);font-size:11px">Tap any crystal to drill in. 2-finger drag to pan. ☰ for full details.</p>`),300);
+    }
   },
 
   showOverview(){
@@ -1652,7 +1673,7 @@ init();
 (function(){
   const c=document.getElementById('canvas-container');
   if(!c)return;
-  let lx=0,ly=0,startX=0,startY=0,pinchDist=0,isTap=false;
+  let lx=0,ly=0,startX=0,startY=0,pinchDist=0,pinchMidX=0,pinchMidY=0,isTap=false;
 
   // Single-finger rotate + tap-to-click
   c.addEventListener('touchstart',e=>{
@@ -1661,16 +1682,17 @@ init();
       startX=lx;startY=ly;isTap=true;
     }
     if(e.touches.length===2){
-      // Pinch zoom start
       const dx=e.touches[0].clientX-e.touches[1].clientX;
       const dy=e.touches[0].clientY-e.touches[1].clientY;
       pinchDist=Math.hypot(dx,dy);
+      pinchMidX=(e.touches[0].clientX+e.touches[1].clientX)/2;
+      pinchMidY=(e.touches[0].clientY+e.touches[1].clientY)/2;
       isTap=false;
     }
   },{passive:true});
 
   c.addEventListener('touchmove',e=>{
-    e.preventDefault(); // prevent page scroll/bounce
+    e.preventDefault();
     if(e.touches.length===1){
       const t=e.touches[0];
       const dx=t.clientX-lx,dy=t.clientY-ly;
@@ -1682,20 +1704,34 @@ init();
       updateCamera();
     }
     if(e.touches.length===2){
-      // Pinch zoom
       const dx=e.touches[0].clientX-e.touches[1].clientX;
       const dy=e.touches[0].clientY-e.touches[1].clientY;
       const newDist=Math.hypot(dx,dy);
+      const newMidX=(e.touches[0].clientX+e.touches[1].clientX)/2;
+      const newMidY=(e.touches[0].clientY+e.touches[1].clientY)/2;
+      // Zoom from pinch distance change
       if(pinchDist>0){
         const scale=pinchDist/newDist;
         orbitState.radius*=scale;
         orbitState.radius=Math.max(5,Math.min(250,orbitState.radius));
-        updateCamera();
       }
-      pinchDist=newDist;
+      // Pan from midpoint movement (two fingers dragging in same direction)
+      const panDx=newMidX-pinchMidX;
+      const panDy=newMidY-pinchMidY;
+      if(Math.abs(panDx)>1||Math.abs(panDy)>1){
+        const panSpeed=0.025*orbitState.radius/20;
+        const right=new THREE.Vector3();const up=new THREE.Vector3();
+        camera.getWorldDirection(up);
+        right.crossVectors(up,camera.up).normalize();
+        up.copy(camera.up).normalize();
+        orbitState.target.addScaledVector(right,-panDx*panSpeed);
+        orbitState.target.addScaledVector(up,panDy*panSpeed);
+      }
+      pinchDist=newDist;pinchMidX=newMidX;pinchMidY=newMidY;
       isTap=false;
+      updateCamera();
     }
-  },{passive:false}); // passive:false so preventDefault works
+  },{passive:false});
 
   c.addEventListener('touchend',e=>{
     if(isTap&&e.changedTouches.length===1){
