@@ -947,15 +947,24 @@ scenes.journey={
   },
 
   onClick(raycaster){
+    let hit=false;
     const focusMeshes=[];this.focusNodes.forEach(n=>n.obj.traverse(m=>{if(m.isMesh){m.userData.focusNode=n;focusMeshes.push(m);}}));
     const fh=raycaster.intersectObjects(focusMeshes);
-    if(fh.length>0){this.drillToFocus(fh[0].object.userData.focusNode.focus.title);return;}
-    const subMeshes=[];this.subtopicNodes.forEach(n=>n.obj.traverse(m=>{if(m.isMesh){m.userData.subNode=n;subMeshes.push(m);}}));
-    const sh=raycaster.intersectObjects(subMeshes);
-    if(sh.length>0){this.drillToSubtopic(sh[0].object.userData.subNode.subtopic,this.activeTopic);return;}
-    const topMeshes=[];this.topicNodes.forEach(n=>n.obj.traverse(m=>{if(m.isMesh){m.userData.topicNode=n;topMeshes.push(m);}}));
-    const th=raycaster.intersectObjects(topMeshes);
-    if(th.length>0)this.drillToTopic(th[0].object.userData.topicNode.topic);
+    if(fh.length>0){this.drillToFocus(fh[0].object.userData.focusNode.focus.title);hit=true;}
+    if(!hit){
+      const subMeshes=[];this.subtopicNodes.forEach(n=>n.obj.traverse(m=>{if(m.isMesh){m.userData.subNode=n;subMeshes.push(m);}}));
+      const sh=raycaster.intersectObjects(subMeshes);
+      if(sh.length>0){this.drillToSubtopic(sh[0].object.userData.subNode.subtopic,this.activeTopic);hit=true;}
+    }
+    if(!hit){
+      const topMeshes=[];this.topicNodes.forEach(n=>n.obj.traverse(m=>{if(m.isMesh){m.userData.topicNode=n;topMeshes.push(m);}}));
+      const th=raycaster.intersectObjects(topMeshes);
+      if(th.length>0){this.drillToTopic(th[0].object.userData.topicNode.topic);hit=true;}
+    }
+    // On mobile, show the panel content as an overlay since sidebar is hidden
+    if(hit&&window.innerWidth<=900){
+      setTimeout(()=>showOverlay(panel.innerHTML),50);
+    }
   },
   exit(){this.clearDrilldown();}
 };
@@ -1097,7 +1106,13 @@ scenes.dataflow={
     const meshes=[];
     this.nodes.forEach(n=>n.obj.traverse(m=>{if(m.isMesh){m.userData.nodeRef=n.data;meshes.push(m);}}));
     const hits=raycaster.intersectObjects(meshes);
-    if(hits.length>0){const nd=hits[0].object.userData.nodeRef;if(nd)this.expandNode(nd.id);}
+    if(hits.length>0){
+      const nd=hits[0].object.userData.nodeRef;
+      if(nd){
+        this.expandNode(nd.id);
+        if(window.innerWidth<=900)setTimeout(()=>showOverlay(panel.innerHTML),50);
+      }
+    }
   }
 };
 // ============================================================
@@ -1195,6 +1210,7 @@ scenes.student={
         ${ms.flag?`<p style="font-size:11px;color:var(--red-light);margin-top:6px">&#9888; ${ms.flag}</p>`:''}
       </div>`;
       if(!document.getElementById('orb-detail'))panel.appendChild(slot);
+      if(window.innerWidth<=900)showOverlay(slot.innerHTML);
     }
   }
 };
