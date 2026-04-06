@@ -110,19 +110,20 @@
   .hat-fate-row:last-child{border-bottom:none;}
   .hat-fate-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
   /* Sidebar toggle button */
-  #sidebar-toggle{display:none;position:absolute;top:12px;right:12px;z-index:100;background:var(--bg-panel);border:1px solid var(--border);color:var(--text);width:40px;height:40px;border-radius:8px;font-size:20px;cursor:pointer;font-family:inherit;line-height:1;}
+  #sidebar-toggle{display:none;position:absolute;top:12px;right:12px;z-index:300;background:var(--bg-panel);border:1px solid var(--border);color:var(--text);width:44px;height:44px;border-radius:8px;font-size:20px;cursor:pointer;font-family:inherit;line-height:1;-webkit-tap-highlight-color:transparent;}
   /* Canvas overlay for detail popups on mobile */
-  #canvas-overlay{display:none;position:absolute;bottom:16px;left:16px;right:16px;max-height:60vh;overflow-y:auto;background:rgba(17,24,39,0.95);backdrop-filter:blur(12px);border:1px solid var(--border);border-radius:10px;padding:18px;z-index:90;font-size:13px;line-height:1.5;color:var(--text);}
+  #canvas-overlay{display:none;position:absolute;bottom:16px;left:12px;right:12px;max-height:55vh;overflow-y:auto;background:rgba(17,24,39,0.96);backdrop-filter:blur(14px);border:1px solid var(--border);border-radius:10px;padding:18px 16px;z-index:90;font-size:13px;line-height:1.5;color:var(--text);-webkit-overflow-scrolling:touch;}
   #canvas-overlay.visible{display:block;}
-  #canvas-overlay .close-btn{position:absolute;top:8px;right:10px;background:none;border:none;color:var(--text-dim);font-size:22px;cursor:pointer;line-height:1;padding:4px;}
-  #canvas-overlay .close-btn:hover{color:var(--text);}
+  #canvas-overlay .close-btn{position:sticky;top:0;float:right;background:var(--bg-panel-2);border:1px solid var(--border);color:var(--text);width:32px;height:32px;border-radius:6px;font-size:20px;cursor:pointer;line-height:1;padding:0;text-align:center;z-index:91;-webkit-tap-highlight-color:transparent;}
+  #canvas-overlay .close-btn:hover{color:var(--text);background:var(--border);}
   #canvas-overlay h3{font-size:14px;font-weight:700;color:var(--accent-2);margin-bottom:8px;}
   #canvas-overlay p{font-size:12px;margin-bottom:6px;}
   /* Mobile responsive */
   @media(max-width:900px){
     main{grid-template-columns:1fr !important;}
-    aside#info-panel{display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:200;padding:60px 20px 20px;overflow-y:auto;}
+    aside#info-panel{display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:200;padding:60px 20px 20px;overflow-y:auto;-webkit-overflow-scrolling:touch;background:var(--bg-panel);}
     aside#info-panel.open{display:block;}
+    aside#info-panel.open::before{content:'';position:fixed;top:0;left:0;right:0;height:50px;background:var(--bg-panel);z-index:1;}
     #sidebar-toggle{display:block;}
     header{padding:10px 14px;gap:10px;}
     header h1{font-size:14px;}
@@ -1598,13 +1599,25 @@ scenes.hatsoff={
 };
 
 // ============================================================
-// MOBILE: Sidebar toggle + Canvas overlay
+// MOBILE: Sidebar, overlay, touch controls
 // ============================================================
 function toggleSidebar(){
-  const panel=document.getElementById('info-panel');
+  const p=document.getElementById('info-panel');
   const btn=document.getElementById('sidebar-toggle');
-  panel.classList.toggle('open');
-  btn.textContent=panel.classList.contains('open')?'✕':'☰';
+  if(p.classList.contains('open')){
+    p.classList.remove('open');
+    btn.textContent='☰';
+  } else {
+    p.classList.add('open');
+    btn.textContent='✕';
+  }
+}
+
+function closeSidebar(){
+  const p=document.getElementById('info-panel');
+  const btn=document.getElementById('sidebar-toggle');
+  p.classList.remove('open');
+  btn.textContent='☰';
 }
 
 function closeOverlay(){
@@ -1612,71 +1625,102 @@ function closeOverlay(){
 }
 
 function showOverlay(html){
-  const overlay=document.getElementById('canvas-overlay');
+  const o=document.getElementById('canvas-overlay');
   document.getElementById('overlay-content').innerHTML=html;
-  overlay.classList.add('visible');
-}
-
-// On mobile, intercept detail clicks and show in canvas overlay instead of panel
-function showDetailMobile(title,content){
-  if(window.innerWidth<=900){
-    showOverlay(`<h3>${title}</h3>${content}`);
-  }
+  o.classList.add('visible');
 }
 
 // Close sidebar when scene changes on mobile
 const origLoadScene=loadScene;
 loadScene=function(name){
   origLoadScene(name);
-  const panel=document.getElementById('info-panel');
-  const btn=document.getElementById('sidebar-toggle');
-  if(panel.classList.contains('open')){
-    panel.classList.remove('open');
-    btn.textContent='☰';
-  }
+  closeSidebar();
   closeOverlay();
 };
-
-// Touch support for 3D rotation
-(function(){
-  const dom=document.querySelector('#canvas-container canvas');
-  if(!dom)return;
-  let touchId=null,lastTouchX=0,lastTouchY=0;
-  document.getElementById('canvas-container').addEventListener('touchstart',e=>{
-    if(e.touches.length===1){
-      touchId=e.touches[0].identifier;
-      lastTouchX=e.touches[0].clientX;
-      lastTouchY=e.touches[0].clientY;
-    }
-  },{passive:true});
-  document.getElementById('canvas-container').addEventListener('touchmove',e=>{
-    if(e.touches.length===1&&touchId!==null){
-      const t=e.touches[0];
-      const dx=t.clientX-lastTouchX;
-      const dy=t.clientY-lastTouchY;
-      orbitState.theta-=dx*0.007;
-      orbitState.phi-=dy*0.007;
-      orbitState.phi=Math.max(0.15,Math.min(Math.PI-0.15,orbitState.phi));
-      lastTouchX=t.clientX;lastTouchY=t.clientY;
-      updateCamera();
-    }
-  },{passive:true});
-  document.getElementById('canvas-container').addEventListener('touchend',()=>{touchId=null;},{passive:true});
-})();
 
 // ============================================================
 // BOOT
 // ============================================================
 init();
 
-// Bind touch events after canvas exists
-setTimeout(()=>{
+// ============================================================
+// TOUCH: Bind after canvas exists
+// ============================================================
+(function(){
   const c=document.getElementById('canvas-container');
-  let touchId=null,lx=0,ly=0;
-  c.addEventListener('touchstart',e=>{if(e.touches.length===1){touchId=e.touches[0].identifier;lx=e.touches[0].clientX;ly=e.touches[0].clientY;}},{passive:true});
-  c.addEventListener('touchmove',e=>{if(e.touches.length===1){const t=e.touches[0];orbitState.theta-=(t.clientX-lx)*0.007;orbitState.phi=Math.max(0.15,Math.min(Math.PI-0.15,orbitState.phi-(t.clientY-ly)*0.007));lx=t.clientX;ly=t.clientY;updateCamera();}},{passive:true});
-  c.addEventListener('touchend',()=>{touchId=null;},{passive:true});
-},100);
+  if(!c)return;
+  let lx=0,ly=0,startX=0,startY=0,pinchDist=0,isTap=false;
+
+  // Single-finger rotate + tap-to-click
+  c.addEventListener('touchstart',e=>{
+    if(e.touches.length===1){
+      lx=e.touches[0].clientX;ly=e.touches[0].clientY;
+      startX=lx;startY=ly;isTap=true;
+    }
+    if(e.touches.length===2){
+      // Pinch zoom start
+      const dx=e.touches[0].clientX-e.touches[1].clientX;
+      const dy=e.touches[0].clientY-e.touches[1].clientY;
+      pinchDist=Math.hypot(dx,dy);
+      isTap=false;
+    }
+  },{passive:true});
+
+  c.addEventListener('touchmove',e=>{
+    e.preventDefault(); // prevent page scroll/bounce
+    if(e.touches.length===1){
+      const t=e.touches[0];
+      const dx=t.clientX-lx,dy=t.clientY-ly;
+      if(Math.abs(dx)>2||Math.abs(dy)>2)isTap=false;
+      orbitState.theta-=dx*0.007;
+      orbitState.phi-=dy*0.007;
+      orbitState.phi=Math.max(0.15,Math.min(Math.PI-0.15,orbitState.phi));
+      lx=t.clientX;ly=t.clientY;
+      updateCamera();
+    }
+    if(e.touches.length===2){
+      // Pinch zoom
+      const dx=e.touches[0].clientX-e.touches[1].clientX;
+      const dy=e.touches[0].clientY-e.touches[1].clientY;
+      const newDist=Math.hypot(dx,dy);
+      if(pinchDist>0){
+        const scale=pinchDist/newDist;
+        orbitState.radius*=scale;
+        orbitState.radius=Math.max(5,Math.min(250,orbitState.radius));
+        updateCamera();
+      }
+      pinchDist=newDist;
+      isTap=false;
+    }
+  },{passive:false}); // passive:false so preventDefault works
+
+  c.addEventListener('touchend',e=>{
+    if(isTap&&e.changedTouches.length===1){
+      // Treat as a click — fire raycaster
+      const t=e.changedTouches[0];
+      const dist=Math.hypot(t.clientX-startX,t.clientY-startY);
+      if(dist<10&&currentScene&&currentScene.onClick){
+        const rect=renderer.domElement.getBoundingClientRect();
+        mouse.x=((t.clientX-rect.left)/rect.width)*2-1;
+        mouse.y=-((t.clientY-rect.top)/rect.height)*2+1;
+        raycaster.setFromCamera(mouse,camera);
+        currentScene.onClick(raycaster);
+        // On mobile, show detail in canvas overlay instead of hidden panel
+        setTimeout(()=>{
+          const detail=document.getElementById('detail-slot')||document.getElementById('hat-detail');
+          if(detail&&detail.innerHTML.trim()&&window.innerWidth<=900){
+            showOverlay(detail.innerHTML);
+          }
+        },50);
+      }
+    }
+    pinchDist=0;
+  },{passive:true});
+
+  // Prevent default on canvas to stop iOS rubber-banding
+  c.addEventListener('gesturestart',e=>e.preventDefault(),{passive:false});
+  c.addEventListener('gesturechange',e=>e.preventDefault(),{passive:false});
+})();
 </script>
 </body>
 </html>
