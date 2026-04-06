@@ -339,7 +339,6 @@ const HATS=[
 ];
 
 const CATEGORY_COLORS={operations:0xef4444,content:0xf59e0b,coaching:0x8b5cf6,strategic:0x10b981};
-const REPLACEMENT_COLORS={eliminated:0x4b5563,partial:0xf59e0b,kept:0x10b981};
 // ============================================================
 // CORE ENGINE
 // ============================================================
@@ -785,6 +784,7 @@ scenes.problem={
       <div class="legend-row"><div class="legend-dot" style="background:#8b5cf6"></div>&#128172; Coaching &mdash; dialogue bubbles</div>
       <div class="legend-row"><div class="legend-dot" style="background:#10b981"></div>&#129517; Strategic &mdash; compasses</div>
       <h3>Interact</h3><p style="color:var(--accent-2)">Click any object for the specific responsibility it represents.</p><div id="detail-slot"></div>`;
+    if(window.innerWidth<=900)setTimeout(()=>showOverlay(`<h3>The Problem</h3><p>Heather wears <strong>18 hats</strong> — 75+ hours per cohort on assessments alone.</p><p style="color:var(--accent-2);font-size:11px">Tap any object to see the responsibility. ☰ for full details.</p>`),300);
   },
   update(){
     const t=clock.getElapsedTime();
@@ -804,7 +804,7 @@ scenes.problem={
     const hits=raycaster.intersectObjects(allMeshes);
     if(hits.length>0){
       const hat=hits[0].object.userData.hat;if(!hat)return;
-      const html=`<div class="detail-box"><div class="title">${hat.full}</div><div class="meta">${hat.category}</div><p>${hat.description}</p>${hat.replacement?`<div style="margin-top:8px;font-size:11px;color:var(--text-dim)"><strong style="color:var(--green-light)">System handles:</strong> ${hat.replacement.detail}</div>`:''}`;
+      const html=`<div class="detail-box"><div class="title">${hat.full}</div><div class="meta">${hat.category}</div><p>${hat.description}</p>${hat.replacement?`<div style="margin-top:8px;font-size:11px;color:var(--text-dim)"><strong style="color:var(--green-light)">System handles:</strong> ${hat.replacement.detail}</div>`:''}</div>`;
       const slot=document.getElementById('detail-slot');
       if(slot)slot.innerHTML=html;
       if(window.innerWidth<=900)showOverlay(html);
@@ -1049,6 +1049,7 @@ scenes.dataflow={
       p.userData={t:Math.random(),speed:0.2+Math.random()*0.1};scene.add(p);this.particles.push(p);
     }
     this.showOverview();
+    if(window.innerWidth<=900)setTimeout(()=>showOverlay(`<h3>Data Flow</h3><p>Three sources → five-stage pipeline. Tap any node to expand it.</p><p style="color:var(--accent-2);font-size:11px">☰ for full details.</p>`),300);
   },
 
   showOverview(){
@@ -1186,6 +1187,7 @@ scenes.student={
     const aLbl=makeLabel('Active: Decision Tree','#fbbf24',0.48);aLbl.position.set(0,6.4,0);scene.add(aLbl);
     this.hwStack=activeBox;
     this._renderPanel();
+    if(window.innerWidth<=900)setTimeout(()=>showOverlay(`<h3>Maria's Student Portal</h3><p>${MARIA.name} — ${MARIA.business}</p><p>Month ${MARIA.programMonth} of ${MARIA.programTotal}. Tap score orbs to see topic details. ☰ for full dashboard.</p>`),300);
   },
 
   _renderPanel(){
@@ -1340,7 +1342,7 @@ scenes.student={
 scenes.coaching={
   heatherFig:null,mariaCard:null,riskFlags:[],labels:[],
   selectedParticipant:null,activeFilter:'all',
-  cardObjects:[],focusMode:false,focusTarget:null,
+  cardObjects:[],
   filterEl:null,
 
   PARTICIPANTS:[
@@ -1476,15 +1478,16 @@ scenes.coaching={
 
   _clearSelection(){
     this.selectedParticipant=null;
-    this.focusMode=false;
     // Reset camera
     orbitState.theta=0.3;orbitState.phi=Math.PI/2.3;orbitState.radius=26;orbitState.target.set(0,0,0);updateCamera();
-    // Restore card opacities
+    // Restore card opacities and scales
     this.cardObjects.forEach(({group})=>{
+      group.scale.setScalar(1);
       group.children.forEach(m=>{if(m.material){m.material.opacity=1.0;m.material.transparent=false;}});
     });
     this._buildFilterBar();
     this._renderPanel();
+    if(window.innerWidth<=900)setTimeout(()=>showOverlay(panel.innerHTML),30);
   },
 
   _selectParticipant(idx){
@@ -1501,12 +1504,14 @@ scenes.coaching={
     });
     // Animate camera toward selected card position on dashboard
     const cardPos=new THREE.Vector3(p.x+3,p.y+4,1.5);
+    orbitState.theta=0.3;
     orbitState.target.set(cardPos.x,cardPos.y,0);
     orbitState.radius=14;
     orbitState.phi=Math.PI/2.2;
     updateCamera();
     this._buildFilterBar();
     this._renderParticipantPanel(p);
+    if(window.innerWidth<=900)setTimeout(()=>showOverlay(panel.innerHTML),30);
   },
 
   _renderParticipantPanel(p){
@@ -1586,7 +1591,7 @@ scenes.coaching={
     if(existingOverlay)existingOverlay.remove();
     const overlay=document.createElement('div');
     overlay.id='risk-drill-overlay';
-    overlay.style.cssText='position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(17,24,39,0.97);backdrop-filter:blur(16px);border:1px solid '+this._getRiskColor(r.level)+';border-radius:10px;padding:20px;z-index:200;width:340px;max-width:90vw;box-shadow:0 0 40px rgba(0,0,0,0.6);';
+    overlay.style.cssText='position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(17,24,39,0.97);backdrop-filter:blur(16px);border:1px solid '+this._getRiskColor(r.level)+';border-radius:10px;padding:20px;z-index:300;width:340px;max-width:90vw;max-height:80vh;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;box-shadow:0 0 40px rgba(0,0,0,0.6);';
     overlay.innerHTML=`
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
         <div style="font-size:14px;font-weight:700;color:${this._getRiskColor(r.level)}">${r.topic}</div>
@@ -1606,19 +1611,6 @@ scenes.coaching={
       `:`<div style="font-size:11px;color:#4b5563;font-style:italic">No rules fired — within benchmark thresholds.</div>`}
       <div style="font-size:10px;color:var(--text-dimmer);margin-top:12px">Heather should ask: ${r.level==='red'?'"What\'s the biggest blocker here right now?"':r.level==='yellow'?'"What would move the needle most this month?"':'"What\'s working well — can we apply it elsewhere?"'}</div>`;
     document.getElementById('canvas-container').appendChild(overlay);
-  },
-
-  _docModal(title, accentColor, bodyHtml){
-    const old=document.getElementById('coaching-doc-overlay');if(old)old.remove();
-    const overlay=document.createElement('div');
-    overlay.id='coaching-doc-overlay';
-    overlay.style.cssText='position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(10,14,26,0.92);backdrop-filter:blur(10px);z-index:500;display:flex;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto;';
-    overlay.addEventListener('click',e=>{if(e.target===overlay)overlay.remove();});
-    const modal=document.createElement('div');
-    modal.style.cssText='background:#111827;border:1px solid #374151;border-top:3px solid '+accentColor+';border-radius:10px;padding:24px 22px;width:100%;max-width:660px;margin:auto;position:relative;';
-    modal.innerHTML=`<button onclick="document.getElementById('coaching-doc-overlay').remove()" style="position:absolute;top:12px;right:12px;background:#1f2937;border:1px solid #374151;color:#9ca3af;width:30px;height:30px;border-radius:6px;font-size:18px;cursor:pointer;line-height:1;font-family:inherit">×</button>`+title+bodyHtml;
-    overlay.appendChild(modal);
-    document.body.appendChild(overlay);
   },
 
   _showDoc(idx, type){
@@ -1993,7 +1985,6 @@ scenes.coaching={
 
   _docModal(titleHtml, accentColor, bodyHtml){
     const old=document.getElementById('coaching-doc-overlay');if(old)old.remove();
-    const section=(label,col,html)=>`<div style="margin-bottom:16px"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.7px;color:${col};margin-bottom:7px">${label}</div>${html}</div>`;
     const overlay=document.createElement('div');
     overlay.id='coaching-doc-overlay';
     overlay.style.cssText='position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(10,14,26,0.93);backdrop-filter:blur(10px);z-index:500;display:flex;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto;';
@@ -2098,11 +2089,13 @@ scenes.coaching={
 
     this._buildFilterBar();
     this._renderPanel();
+    if(window.innerWidth<=900)setTimeout(()=>showOverlay(panel.innerHTML),50);
   },
 
   exit(){
     const el=document.getElementById('coach-filter-bar');if(el)el.remove();
     const el2=document.getElementById('risk-drill-overlay');if(el2)el2.remove();
+    const el3=document.getElementById('coaching-doc-overlay');if(el3)el3.remove();
   },
 
   _renderPanel(){
@@ -2237,15 +2230,17 @@ scenes.coaching={
         }
       }
     }
-    // Click pipeline orbs
+    // Click pipeline orbs — only update pipeline status when the overview panel is showing
     const orbMeshes=this.riskFlags.map(r=>r.orb);
     const orbHits=raycaster.intersectObjects(orbMeshes);
     if(orbHits.length>0){
+      if(this.selectedParticipant!==null)return; // participant panel is showing, don't corrupt it
       const idx=orbMeshes.indexOf(orbHits[0].object);
       const names=['Ingestion','Rules Engine','LLM Enrichment','Output Formatter','Dashboard'];
       const statuses=['Online — polling Zoho Form every 60s, last payload 10 min ago','3 rules fired on Maria\'s last submission (R_tech_restaurant_pre_revenue_01, 02, 03)','Graded homework in 4.2s (Claude Haiku). Score written to dashboard.','Action plan + coach summary generated. Participant notified.','Live — Heather\'s view auto-refreshed. Andy and Carina have read-only access.'];
       const pipeSection=panel.querySelector('.pipe-section');
       if(pipeSection){pipeSection.innerHTML=`<div class="sub-label">${names[idx]} — Status</div><p style="font-size:12px;color:var(--green)">${statuses[idx]}</p>`;}
+      return;
     }
     // Click Maria's floating card — jump to Maria's profile
     if(this.mariaCard){
@@ -2355,6 +2350,7 @@ scenes.trajectories={
 
     this.selectedIdx=-1;this.monthProgress=1.0;
     this.buildPanel();
+    if(window.innerWidth<=900)setTimeout(()=>showOverlay(panel.innerHTML),50);
   },
   getPos(p,t){
     const scale=0.1;
@@ -2451,7 +2447,10 @@ scenes.trajectories={
   onClick(raycaster){
     const meshes=this.dots.map(d=>d.mesh);
     const hits=raycaster.intersectObjects(meshes);
-    if(hits.length>0){this.selectParticipant(hits[0].object.userData.index);}
+    if(hits.length>0){
+      this.selectParticipant(hits[0].object.userData.index);
+      if(window.innerWidth<=900){const d=document.getElementById('detail-slot');if(d)showOverlay(d.innerHTML);}
+    }
   }
 };
 
@@ -2490,6 +2489,7 @@ scenes.hatsoff={
       this.hats.push({obj,label,type});
     });
     this._renderPanel();
+    if(window.innerWidth<=900)setTimeout(()=>showOverlay(`<h3>Hats Come Off</h3><p><strong style="color:#6b7280">Gray = eliminated</strong> · <strong style="color:#fbbf24">Yellow = partial</strong> · <strong style="color:#34d399">Green = kept</strong></p><p style="font-size:11px">Watch hats drift to their new orbits. Tap any hat for details. ☰ for full breakdown.</p>`),300);
   },
 
   _renderPanel(){
@@ -2557,12 +2557,14 @@ scenes.hatsoff={
       const hat=hits[0].object.userData.hatRef;if(!hat)return;
       const slot=document.getElementById('hat-detail');if(!slot)return;
       const col=hat.replacement.type==='eliminated'?'var(--border)':hat.replacement.type==='partial'?'var(--yellow)':'var(--green)';
-      slot.innerHTML=`<div class="detail-box" style="border-left-color:${col}">
+      const html=`<div class="detail-box" style="border-left-color:${col}">
         <div class="title">${hat.full}</div>
         <div class="meta">${hat.replacement.type==='eliminated'?'&#9746; Fully Automated':hat.replacement.type==='partial'?'&#10003; Partially Automated':'&#9733; Kept by Heather'}</div>
         <p style="font-size:11px;margin-top:6px">${hat.description}</p>
         <p style="font-size:11px;margin-top:6px;color:var(--accent-2)"><strong>System role:</strong> ${hat.replacement.detail}</p>
       </div>`;
+      slot.innerHTML=html;
+      if(window.innerWidth<=900)showOverlay(html);
     }
   }
 };
