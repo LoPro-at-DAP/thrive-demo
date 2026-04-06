@@ -112,7 +112,7 @@
   /* Sidebar toggle button */
   #sidebar-toggle{display:none;position:absolute;top:12px;right:12px;z-index:300;background:var(--bg-panel);border:1px solid var(--border);color:var(--text);width:44px;height:44px;border-radius:8px;font-size:20px;cursor:pointer;font-family:inherit;line-height:1;-webkit-tap-highlight-color:transparent;}
   /* Canvas overlay for detail popups on mobile */
-  #canvas-overlay{display:none;position:fixed;bottom:12px;left:12px;right:12px;max-height:50vh;overflow-y:auto;background:rgba(17,24,39,0.96);backdrop-filter:blur(14px);border:1px solid var(--border);border-radius:10px;padding:18px 16px;z-index:250;font-size:13px;line-height:1.5;color:var(--text);-webkit-overflow-scrolling:touch;}
+  #canvas-overlay{display:none;position:fixed;bottom:12px;left:12px;right:12px;max-height:65vh;overflow-y:scroll;background:rgba(17,24,39,0.96);backdrop-filter:blur(14px);border:1px solid var(--border);border-radius:10px;padding:18px 16px;z-index:250;font-size:13px;line-height:1.5;color:var(--text);-webkit-overflow-scrolling:touch;touch-action:pan-y;overscroll-behavior:contain;}
   #canvas-overlay.visible{display:block;}
   #canvas-overlay .detail-box{margin-top:0;}
   #canvas-overlay .title{font-size:14px;font-weight:700;color:var(--accent-2);}
@@ -1698,8 +1698,17 @@ init();
   if(!c)return;
   let lx=0,ly=0,startX=0,startY=0,pinchDist=0,pinchMidX=0,pinchMidY=0,isTap=false;
 
+  // Skip touch handling if user is interacting with overlay or sidebar
+  function isOverlayTouch(e){
+    const t=e.touches[0]||e.changedTouches[0];if(!t)return false;
+    const el=document.elementFromPoint(t.clientX,t.clientY);
+    if(!el)return false;
+    return el.closest('#canvas-overlay')||el.closest('#info-panel')||el.closest('#sidebar-toggle');
+  }
+
   // Single-finger rotate + tap-to-click
   c.addEventListener('touchstart',e=>{
+    if(isOverlayTouch(e))return;
     if(e.touches.length===1){
       lx=e.touches[0].clientX;ly=e.touches[0].clientY;
       startX=lx;startY=ly;isTap=true;
@@ -1718,6 +1727,7 @@ init();
   // (replaces both the old tap handler and the transition handler)
 
   c.addEventListener('touchmove',e=>{
+    if(isOverlayTouch(e))return; // let overlay scroll naturally
     e.preventDefault();
     if(e.touches.length===1){
       const t=e.touches[0];
