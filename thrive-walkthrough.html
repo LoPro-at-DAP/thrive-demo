@@ -1121,7 +1121,7 @@ scenes.dataflow={
       </div>
       <h3>Maria's Example</h3>
       <div class="detail-box"><p style="font-size:12px">${d.example}</p></div>
-      <button class="action-btn secondary small" onclick="scenes.dataflow.showOverview()">&larr; Back to Overview</button>`;
+      <button class="action-btn secondary small" onclick="scenes.dataflow.showOverview();if(window.innerWidth<=900)showOverlay(panel.innerHTML)">&larr; Back to Overview</button>`;
   },
 
   update(){
@@ -2411,12 +2411,17 @@ scenes.trajectories={
       this.dots[idx].label.material.opacity=1.0;
     }
     this.buildPanel();
+    this._syncOverlay();
+  },
+  _syncOverlay(){
+    if(window.innerWidth<=900)setTimeout(()=>showOverlay(panel.innerHTML),30);
   },
   showAllTrajectories(){
     this.dots.forEach(d=>{d.arrowLine.material.opacity=0.5;d.arrowHead.material.opacity=0.5;d.label.material.opacity=0.7;});
     this.trendArrow.material.opacity=0.8;this.trendHead.material.opacity=0.8;this.trendLabel.material.opacity=1.0;
     this.selectedIdx=-1;
     this.buildPanel();
+    this._syncOverlay();
   },
   hideAllTrajectories(){
     this.dots.forEach(d=>{d.arrowLine.material.opacity=0;d.arrowHead.material.opacity=0;d.label.material.opacity=0.5;
@@ -2424,6 +2429,7 @@ scenes.trajectories={
     this.trendArrow.material.opacity=0;this.trendHead.material.opacity=0;this.trendLabel.material.opacity=0;
     this.selectedIdx=-1;this.monthProgress=1.0;
     this.buildPanel();
+    this._syncOverlay();
   },
   setMonth(t){
     this.monthProgress=t;const scale=0.1;
@@ -2449,7 +2455,6 @@ scenes.trajectories={
     const hits=raycaster.intersectObjects(meshes);
     if(hits.length>0){
       this.selectParticipant(hits[0].object.userData.index);
-      if(window.innerWidth<=900){const d=document.getElementById('detail-slot');if(d)showOverlay(d.innerHTML);}
     }
   }
 };
