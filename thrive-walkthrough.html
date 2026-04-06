@@ -1339,56 +1339,727 @@ scenes.student={
 // ============================================================
 scenes.coaching={
   heatherFig:null,mariaCard:null,riskFlags:[],labels:[],
+  selectedParticipant:null,activeFilter:'all',
+  cardObjects:[],focusMode:false,focusTarget:null,
+  filterEl:null,
+
+  PARTICIPANTS:[
+    {name:'Maria Rodriguez',short:'Maria R.',score:74,risk:'yellow',riskHex:0xf59e0b,
+     industry:'Restaurant / Food Service',stage:'Pre-revenue',month:5,
+     risks:[{topic:'Legal & Compliance',score:58,level:'red',flag:'No LLC filed — entity formation blocking insurance, permits, lease negotiation',rules:['R_legal_restaurant_pre_rev_01'],exercises:['LLC Formation Checklist','Operating Agreement Template']},
+            {topic:'Marketing & Brand',score:68,level:'yellow',flag:'Content calendar weak (64%). Local SEO not explored.',rules:['R_mktg_restaurant_pre_rev_02'],exercises:['Content Calendar Template','SEO Basics Workbook']},
+            {topic:'Operations & Supply Chain',score:81,level:'green',flag:'Strong. 4 farm suppliers documented.',rules:[],exercises:[]}],
+     homework:{done:2,total:4,missing:'Customer Journey Automation Decision Tree'},
+     engagement:{appLogins:14,alai:12,hwPct:'50%',lastLogin:'Yesterday'},
+     nextActions:['Connect with legal clinic this week','Set 30-day LLC deadline or permit timeline is at risk','Confirm Squarespace-compatible CRM shortlist','Review Decision Tree homework in next session'],
+     benchmarkRules:['R_tech_restaurant_pre_revenue_01: Q2 < 5 AND industry=restaurant → ROI Worksheet','R_tech_restaurant_pre_revenue_02: Q3 < 5 → Customer Data Baseline','R_tech_restaurant_pre_revenue_03: Q1 < 6 AND Q5 < 7 → Pre-launch Tech Stack Checklist'],
+     x:-4.5,y:1.5},
+    {name:'Logan Montgomery',short:'Logan M.',score:35,risk:'red',riskHex:0xef4444,
+     industry:'Technology / SaaS',stage:'Early Operations',month:5,
+     risks:[{topic:'Engagement & Completion',score:35,level:'red',flag:'Homework completion dropped 90% → 40%. No app login in 9 days.',rules:['R_engagement_critical_01'],exercises:['1:1 Intervention Template','Modified Timeline Worksheet']},
+            {topic:'Financial Health',score:44,level:'red',flag:'Cash flow worksheet incomplete. Unit economics below benchmark.',rules:['R_fin_tech_early_ops_02'],exercises:['Monthly Cash Flow Tracker','Break-Even Analysis Template']},
+            {topic:'Operations',score:52,level:'yellow',flag:'Systems underdeveloped for current growth pace.',rules:[],exercises:[]}],
+     homework:{done:2,total:5,missing:'Cash Flow Worksheet, Competitor Analysis Matrix'},
+     engagement:{appLogins:1,alai:0,hwPct:'40%',lastLogin:'9 days ago'},
+     nextActions:['URGENT: Schedule 1:1 this week — disengagement risk','Ask about external blockers (personal, financial, business)','Consider modified milestone timeline','Evaluate program continuation at next session'],
+     benchmarkRules:['R_engagement_critical_01: app_login_gap > 7d AND hw_completion < 50% → RISK ALERT','R_fin_tech_early_ops_02: cash_flow_worksheet = incomplete AND stage = early_ops → Assign CFO Fundamentals'],
+     x:-1.5,y:1.5},
+    {name:'Diego Morales',short:'Diego M.',score:38,risk:'red',riskHex:0xef4444,
+     industry:'Food Production',stage:'Pre-revenue',month:5,
+     risks:[{topic:'Financial Health',score:32,level:'red',flag:'M1 score 32%. Cash flow worksheet not completed.',rules:['R_fin_food_pre_rev_01'],exercises:['Startup Budget Worksheet','Monthly Cash Flow Tracker']},
+            {topic:'Technology & Automation',score:41,level:'red',flag:'No CRM or digital infrastructure planning.',rules:['R_tech_food_pre_rev_01'],exercises:['Website Platform Selection','POS System Comparison']},
+            {topic:'Operations',score:68,level:'yellow',flag:'Improving — food production SOPs progressing.',rules:[],exercises:[]}],
+     homework:{done:3,total:5,missing:'Budget Worksheet, CRM Research'},
+     engagement:{appLogins:8,alai:5,hwPct:'60%',lastLogin:'3 days ago'},
+     nextActions:['Pair with Priya Sharma for financial mentoring session','Assign supplemental budgeting exercises','Focus M6 on financial literacy before sales topic'],
+     benchmarkRules:['R_fin_food_pre_rev_01: financial_score < 40 AND cash_flow_worksheet = false → Startup Budget Worksheet + tracker','R_fin_food_pre_rev_02: financial_score < 40 AND stage = pre_rev → Budget Coaching Flag'],
+     x:1.5,y:1.5},
+    {name:'Priya Sharma',short:'Priya S.',score:82,risk:'green',riskHex:0x10b981,
+     industry:'Consulting',stage:'Scaling',month:5,
+     risks:[{topic:'Financial Health',score:88,level:'green',flag:'Strong. Revenue diversification in progress.',rules:[],exercises:[]},
+            {topic:'Strategy & Planning',score:85,level:'green',flag:'OKR framework adopted. 12-month roadmap complete.',rules:[],exercises:[]},
+            {topic:'People & HR',score:71,level:'yellow',flag:'First hire in progress — onboarding checklist assigned.',rules:['R_hr_consulting_scaling_01'],exercises:['Interview Question Bank','Onboarding Checklist']}],
+     homework:{done:5,total:5,missing:null},
+     engagement:{appLogins:22,alai:18,hwPct:'100%',lastLogin:'Today'},
+     nextActions:['Nominate as cohort mentor for Diego (financial pairing)','Discuss Series A readiness on next call','Preview M6 Sales curriculum — may be able to accelerate'],
+     benchmarkRules:['R_hr_consulting_scaling_01: first_hire = true AND onboarding_doc = false → Onboarding Checklist'],
+     x:4.5,y:1.5},
+    {name:'James Kimura',short:'James K.',score:72,risk:'green',riskHex:0x10b981,
+     industry:'Retail',stage:'Early Operations',month:5,
+     risks:[{topic:'Marketing & Brand',score:58,level:'yellow',flag:'Social media inconsistent. No paid channel plan.',rules:['R_mktg_retail_early_ops_01'],exercises:['Social Media Playbook','Ad Budget Calculator']},
+            {topic:'Operations',score:78,level:'green',flag:'Inventory system implemented.',rules:[],exercises:[]},
+            {topic:'Financial Health',score:75,level:'green',flag:'Margins improving quarter over quarter.',rules:[],exercises:[]}],
+     homework:{done:4,total:5,missing:'Ad Budget Calculator'},
+     engagement:{appLogins:16,alai:9,hwPct:'80%',lastLogin:'2 days ago'},
+     nextActions:['Nudge on marketing homework before M6 Sales topic','Introduce local SEO module — retail context'],
+     benchmarkRules:['R_mktg_retail_early_ops_01: social_consistency < 3 AND paid_plan = false → Social Media Playbook'],
+     x:-4.5,y:-0.5},
+    {name:'Sarah Liu',short:'Sarah L.',score:78,risk:'green',riskHex:0x10b981,
+     industry:'Professional Services',stage:'Early Operations',month:5,
+     risks:[{topic:'Financial Health',score:80,level:'green',flag:'Revenue growing. Pricing strategy solid.',rules:[],exercises:[]},
+            {topic:'Customer Experience',score:75,level:'green',flag:'NPS improving.',rules:[],exercises:[]},
+            {topic:'Leadership',score:62,level:'yellow',flag:'Delegation patterns need development as team grows.',rules:['R_lead_services_early_ops_01'],exercises:['1:1 Meeting Template','Performance Review Framework']}],
+     homework:{done:5,total:5,missing:null},
+     engagement:{appLogins:19,alai:14,hwPct:'100%',lastLogin:'Today'},
+     nextActions:['On track — light-touch coaching this cycle','Preview Leadership module ahead of M10'],
+     benchmarkRules:['R_lead_services_early_ops_01: team_size >= 2 AND delegation_score < 65 → Leadership Framework'],
+     x:-1.5,y:-0.5},
+    {name:'Carlos Vasquez',short:'Carlos V.',score:65,risk:'yellow',riskHex:0xf59e0b,
+     industry:'Restaurant / Food Service',stage:'Early Operations',month:5,
+     risks:[{topic:'Marketing & Brand',score:52,level:'red',flag:'Second location launch without marketing plan.',rules:['R_mktg_restaurant_early_ops_01'],exercises:['Content Calendar Template','Local SEO Workbook']},
+            {topic:'Operations',score:78,level:'green',flag:'Second restaurant ops solid.',rules:[],exercises:[]},
+            {topic:'Financial Health',score:65,level:'yellow',flag:'Cash flow tight with second location investment.',rules:['R_fin_restaurant_early_ops_02'],exercises:['Cash Flow Tracker']}],
+     homework:{done:3,total:5,missing:'Marketing Plan Draft, SEO Audit'},
+     engagement:{appLogins:11,alai:7,hwPct:'60%',lastLogin:'4 days ago'},
+     nextActions:['Address marketing gap before second location launch','Cash flow review — expansion financing'],
+     benchmarkRules:['R_mktg_restaurant_early_ops_01: location_count >= 2 AND mktg_plan = false → Local Marketing Playbook'],
+     x:1.5,y:-0.5},
+    {name:'Linh Nguyen',short:'Linh N.',score:62,risk:'yellow',riskHex:0xf59e0b,
+     industry:'Online / E-commerce',stage:'Pre-revenue',month:5,
+     risks:[{topic:'Financial Health',score:48,level:'red',flag:'Revenue projections not modeled. Burn rate unclear.',rules:['R_fin_online_pre_rev_01'],exercises:['Startup Budget Worksheet','Break-Even Analysis Template']},
+            {topic:'Technology & Automation',score:72,level:'green',flag:'Strong digital skills. Good tech stack.',rules:[],exercises:[]},
+            {topic:'Marketing & Brand',score:65,level:'yellow',flag:'Organic channels good, paid not explored.',rules:[],exercises:[]}],
+     homework:{done:3,total:5,missing:'Budget Worksheet, Revenue Model'},
+     engagement:{appLogins:13,alai:10,hwPct:'60%',lastLogin:'Yesterday'},
+     nextActions:['Financial planning is the primary gap — assign supplemental worksheets','Good candidate for peer pairing with James (retail financial context)'],
+     benchmarkRules:['R_fin_online_pre_rev_01: revenue_model = false AND burn_documented = false → Startup Budget + Break-Even'],
+     x:4.5,y:-0.5},
+  ],
+
+  _getRiskColor(level){return level==='red'?'#ef4444':level==='yellow'?'#f59e0b':'#10b981';},
+
+  _buildFilterBar(){
+    // Remove old filter bar if exists
+    const old=document.getElementById('coach-filter-bar');
+    if(old)old.remove();
+    const bar=document.createElement('div');
+    bar.id='coach-filter-bar';
+    bar.style.cssText='position:absolute;top:56px;left:50%;transform:translateX(-50%);display:flex;gap:6px;z-index:100;background:rgba(10,14,26,0.85);backdrop-filter:blur(10px);border:1px solid #374151;border-radius:8px;padding:6px 10px;';
+    const filters=[{key:'all',label:'All 25',color:'#9ca3af'},{key:'red',label:'🔴 Red (3)',color:'#ef4444'},{key:'yellow',label:'🟡 Yellow (7)',color:'#f59e0b'},{key:'green',label:'🟢 On Track (15)',color:'#10b981'},{key:'homework',label:'📋 Missing HW',color:'#8b5cf6'}];
+    filters.forEach(f=>{
+      const btn=document.createElement('button');
+      btn.textContent=f.label;
+      btn.dataset.fkey=f.key;
+      const isActive=this.activeFilter===f.key;
+      btn.style.cssText=`background:${isActive?f.color+'33':'transparent'};border:1px solid ${isActive?f.color:'#374151'};color:${isActive?f.color:'#9ca3af'};padding:4px 10px;font-size:11px;border-radius:5px;cursor:pointer;font-family:inherit;font-weight:${isActive?'700':'400'};transition:all 0.15s;white-space:nowrap;`;
+      btn.addEventListener('click',()=>{
+        this.activeFilter=f.key;
+        this._buildFilterBar();
+        this._applyFilter();
+      });
+      bar.appendChild(btn);
+    });
+    // Reset selection button
+    if(this.selectedParticipant!==null){
+      const reset=document.createElement('button');
+      reset.textContent='✕ Clear';
+      reset.style.cssText='background:transparent;border:1px solid #374151;color:#6b7280;padding:4px 10px;font-size:11px;border-radius:5px;cursor:pointer;font-family:inherit;margin-left:4px;';
+      reset.addEventListener('click',()=>this._clearSelection());
+      bar.appendChild(reset);
+    }
+    document.getElementById('canvas-container').appendChild(bar);
+    this.filterEl=bar;
+  },
+
+  _applyFilter(){
+    this.cardObjects.forEach(({group,p},i)=>{
+      let show=true;
+      if(this.activeFilter==='red')show=p.risk==='red';
+      else if(this.activeFilter==='yellow')show=p.risk==='yellow';
+      else if(this.activeFilter==='green')show=p.risk==='green';
+      else if(this.activeFilter==='homework')show=p.homework.missing!==null;
+      group.children.forEach(m=>{
+        if(m.material){m.material.opacity=show?1.0:0.18;m.material.transparent=true;}
+      });
+    });
+  },
+
+  _clearSelection(){
+    this.selectedParticipant=null;
+    this.focusMode=false;
+    // Reset camera
+    orbitState.theta=0.3;orbitState.phi=Math.PI/2.3;orbitState.radius=26;orbitState.target.set(0,0,0);updateCamera();
+    // Restore card opacities
+    this.cardObjects.forEach(({group})=>{
+      group.children.forEach(m=>{if(m.material){m.material.opacity=1.0;m.material.transparent=false;}});
+    });
+    this._buildFilterBar();
+    this._renderPanel();
+  },
+
+  _selectParticipant(idx){
+    this.selectedParticipant=idx;
+    const p=this.PARTICIPANTS[idx];
+    // Dim other cards, highlight selected
+    this.cardObjects.forEach(({group},i)=>{
+      group.children.forEach(m=>{
+        if(m.material){
+          m.material.opacity=i===idx?1.0:0.22;
+          m.material.transparent=true;
+        }
+      });
+    });
+    // Animate camera toward selected card position on dashboard
+    const cardPos=new THREE.Vector3(p.x+3,p.y+4,1.5);
+    orbitState.target.set(cardPos.x,cardPos.y,0);
+    orbitState.radius=14;
+    orbitState.phi=Math.PI/2.2;
+    updateCamera();
+    this._buildFilterBar();
+    this._renderParticipantPanel(p);
+  },
+
+  _renderParticipantPanel(p){
+    const riskBadge=p.risk==='red'?'<span class="pill red">AT RISK</span>':p.risk==='yellow'?'<span class="pill yellow">MONITOR</span>':'<span class="pill green">ON TRACK</span>';
+    const hwColor=p.homework.missing?'var(--yellow)':'var(--green)';
+    panel.innerHTML=`
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
+        <button onclick="scenes.coaching._clearSelection()" style="background:var(--bg-panel-2);border:1px solid var(--border);color:var(--text-dim);padding:5px 10px;border-radius:5px;cursor:pointer;font-size:11px;font-family:inherit;">← All Participants</button>
+        ${riskBadge}
+      </div>
+      <div class="maria-profile" style="background:linear-gradient(135deg,rgba(${p.risk==='red'?'239,68,68':p.risk==='yellow'?'245,158,11':'16,185,129'},0.12),rgba(30,40,60,0.4));border-color:${this._getRiskColor(p.risk)}">
+        <div class="name" style="color:${this._getRiskColor(p.risk)};font-size:16px">${p.name}</div>
+        <div class="biz" style="font-size:12px;color:var(--text)">${p.industry} · ${p.stage} · Month ${p.month}</div>
+        <div class="attrs" style="margin-top:8px">
+          <span style="font-size:11px;color:var(--text-dim)">Score: <strong style="color:${this._getRiskColor(p.risk)}">${p.score}%</strong></span>
+          &nbsp;·&nbsp;
+          <span style="font-size:11px;color:var(--text-dim)">HW: <strong style="color:${hwColor}">${p.homework.done}/${p.homework.total}</strong></span>
+          &nbsp;·&nbsp;
+          <span style="font-size:11px;color:var(--text-dim)">Last login: <strong>${p.engagement.lastLogin}</strong></span>
+        </div>
+      </div>
+
+      <h3>Risk Areas — Click to Drill Down</h3>
+      ${p.risks.map((r,ri)=>`
+        <div onclick="scenes.coaching._showRiskDrill(${this.PARTICIPANTS.indexOf(p)},${ri})" style="cursor:pointer;background:var(--bg-panel-2);border:1px solid var(--border);border-left:3px solid ${this._getRiskColor(r.level)};border-radius:6px;padding:10px 12px;margin-bottom:7px;transition:border-color 0.15s" onmouseover="this.style.borderLeftWidth='4px'" onmouseout="this.style.borderLeftWidth='3px'">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+            <span style="font-size:12px;font-weight:600;color:${this._getRiskColor(r.level)}">${r.topic}</span>
+            <span style="font-size:13px;font-weight:700;color:${this._getRiskColor(r.level)}">${r.score}%</span>
+          </div>
+          <div class="progress-bar ${r.level}"><div class="fill" style="width:${r.score}%"></div></div>
+          <div style="font-size:10px;color:var(--text-dim);margin-top:5px">${r.flag}</div>
+          ${r.rules.length>0?`<div style="font-size:9px;color:var(--accent-3);margin-top:4px">▸ ${r.rules.length} rule${r.rules.length>1?'s':''} fired · ${r.exercises.length} exercise${r.exercises.length!==1?'s':''} assigned · tap to expand</div>`:'<div style="font-size:9px;color:#4b5563;margin-top:4px">▸ No rules fired — within benchmark</div>'}
+        </div>
+      `).join('')}
+
+      <h3 style="margin-top:14px">Coaching Actions</h3>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px">
+        <button class="action-btn small" onclick="scenes.coaching._showDoc(scenes.coaching.selectedParticipant,'plan')">📄 Action Plan</button>
+        <button class="action-btn small" onclick="scenes.coaching._showDoc(scenes.coaching.selectedParticipant,'summary')">🤖 Coach Summary</button>
+        <button class="action-btn small secondary" onclick="scenes.coaching._showDoc(scenes.coaching.selectedParticipant,'followup')">📅 Mark Follow-up</button>
+        <button class="action-btn small secondary" onclick="scenes.coaching._showDoc(scenes.coaching.selectedParticipant,'benchmarks')">📊 Benchmark History</button>
+        <button class="action-btn small secondary" onclick="scenes.coaching._showDoc(scenes.coaching.selectedParticipant,'export')">⬇ Export ZIP</button>
+        ${p.risk==='red'?`<button class="action-btn small" style="background:var(--red);color:white" onclick="scenes.coaching._showDoc(scenes.coaching.selectedParticipant,'escalate')">⚠ Escalate</button>`:''}
+      </div>
+
+      <h3 style="cursor:pointer" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none';this.querySelector('span').textContent=this.nextElementSibling.style.display==='none'?'▶':'▼'">Next Session Agenda <span>▼</span></h3>
+      <div>
+        <div class="pipe-section"><div class="sub-label">AI-Generated Priorities</div><ul>
+          ${p.nextActions.map(a=>`<li>${a}</li>`).join('')}
+        </ul></div>
+      </div>
+
+      <h3 style="cursor:pointer;margin-top:12px" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none';this.querySelector('span').textContent=this.nextElementSibling.style.display==='none'?'▶':'▼'">Engagement This Month <span>▶</span></h3>
+      <div style="display:none">
+        <div class="dash-grid">
+          <div class="dash-card"><div class="label">App Logins</div><div class="value">${p.engagement.appLogins}</div><div class="sub">this month</div></div>
+          <div class="dash-card"><div class="label">AI Coach Chats</div><div class="value">${p.engagement.alai}</div><div class="sub">AI conversations</div></div>
+          <div class="dash-card"><div class="label">Homework</div><div class="value" style="color:${hwColor}">${p.engagement.hwPct}</div><div class="sub">completion rate</div></div>
+          <div class="dash-card"><div class="label">Last Seen</div><div class="value" style="font-size:13px">${p.engagement.lastLogin}</div><div class="sub">app login</div></div>
+        </div>
+        ${p.homework.missing?`<div style="background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.3);border-radius:6px;padding:10px;margin-top:8px;font-size:11px;color:var(--yellow-light)">⚠ Missing: ${p.homework.missing}</div>`:''}
+      </div>
+
+      <h3 style="cursor:pointer;margin-top:12px" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none';this.querySelector('span').textContent=this.nextElementSibling.style.display==='none'?'▶':'▼'">Rule Engine Log <span>▶</span></h3>
+      <div style="display:none">
+        <div class="pipe-section"><div class="sub-label">Rules Fired This Assessment</div><ul>
+          ${p.benchmarkRules.map(r=>`<li style="font-family:monospace;font-size:10px;color:var(--accent-3)">${r}</li>`).join('')}
+        </ul></div>
+        <div style="font-size:10px;color:var(--text-dimmer);margin-top:6px">Deterministic output. LLM enrichment added after — does not modify rule decisions.</div>
+      </div>`;
+  },
+
+  _showRiskDrill(pIdx,rIdx){
+    const p=this.PARTICIPANTS[pIdx];
+    const r=p.risks[rIdx];
+    const existingOverlay=document.getElementById('risk-drill-overlay');
+    if(existingOverlay)existingOverlay.remove();
+    const overlay=document.createElement('div');
+    overlay.id='risk-drill-overlay';
+    overlay.style.cssText='position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(17,24,39,0.97);backdrop-filter:blur(16px);border:1px solid '+this._getRiskColor(r.level)+';border-radius:10px;padding:20px;z-index:200;width:340px;max-width:90vw;box-shadow:0 0 40px rgba(0,0,0,0.6);';
+    overlay.innerHTML=`
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <div style="font-size:14px;font-weight:700;color:${this._getRiskColor(r.level)}">${r.topic}</div>
+        <button onclick="document.getElementById('risk-drill-overlay').remove()" style="background:var(--bg-panel-2);border:1px solid var(--border);color:var(--text-dim);width:28px;height:28px;border-radius:5px;cursor:pointer;font-size:16px;line-height:1">×</button>
+      </div>
+      <div style="font-size:11px;color:var(--text-dim);margin-bottom:10px">${p.name} · ${p.industry} · Month ${p.month}</div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+        <span style="font-size:28px;font-weight:700;color:${this._getRiskColor(r.level)}">${r.score}%</span>
+        <div style="flex:1"><div class="progress-bar ${r.level}" style="height:10px;border-radius:5px"><div class="fill" style="width:${r.score}%"></div></div><div style="font-size:9px;color:var(--text-dim);margin-top:3px">Benchmark threshold: ${r.level==='red'?'< 65%':r.level==='yellow'?'65–80%':'> 80%'}</div></div>
+      </div>
+      <div style="font-size:12px;margin-bottom:12px;line-height:1.5">${r.flag}</div>
+      ${r.rules.length>0?`
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--accent-2);margin-bottom:6px">Rules Fired</div>
+      ${r.rules.map(rule=>`<div style="font-family:monospace;font-size:10px;color:var(--accent-3);background:var(--bg-panel-2);padding:6px 8px;border-radius:4px;margin-bottom:4px">${rule}</div>`).join('')}
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--accent-2);margin:10px 0 6px">Assigned Exercises</div>
+      ${r.exercises.map(ex=>`<div style="font-size:11px;padding:5px 0;border-bottom:1px solid var(--border);color:var(--text)">${ex}</div>`).join('')}
+      `:`<div style="font-size:11px;color:#4b5563;font-style:italic">No rules fired — within benchmark thresholds.</div>`}
+      <div style="font-size:10px;color:var(--text-dimmer);margin-top:12px">Heather should ask: ${r.level==='red'?'"What\'s the biggest blocker here right now?"':r.level==='yellow'?'"What would move the needle most this month?"':'"What\'s working well — can we apply it elsewhere?"'}</div>`;
+    document.getElementById('canvas-container').appendChild(overlay);
+  },
+
+  _docModal(title, accentColor, bodyHtml){
+    const old=document.getElementById('coaching-doc-overlay');if(old)old.remove();
+    const overlay=document.createElement('div');
+    overlay.id='coaching-doc-overlay';
+    overlay.style.cssText='position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(10,14,26,0.92);backdrop-filter:blur(10px);z-index:500;display:flex;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto;';
+    overlay.addEventListener('click',e=>{if(e.target===overlay)overlay.remove();});
+    const modal=document.createElement('div');
+    modal.style.cssText='background:#111827;border:1px solid #374151;border-top:3px solid '+accentColor+';border-radius:10px;padding:24px 22px;width:100%;max-width:660px;margin:auto;position:relative;';
+    modal.innerHTML=`<button onclick="document.getElementById('coaching-doc-overlay').remove()" style="position:absolute;top:12px;right:12px;background:#1f2937;border:1px solid #374151;color:#9ca3af;width:30px;height:30px;border-radius:6px;font-size:18px;cursor:pointer;line-height:1;font-family:inherit">×</button>`+title+bodyHtml;
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+  },
+
+  _showDoc(idx, type){
+    if(idx===null||idx===undefined)return;
+    const p=this.PARTICIPANTS[idx];
+    const rc=this._getRiskColor(p.risk);
+    const pill=(label,col)=>`<span style="display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;background:${col}22;color:${col};border:1px solid ${col}44;margin-right:4px">${label}</span>`;
+    const section=(label,col,html)=>`<div style="margin-bottom:16px"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.7px;color:${col};margin-bottom:7px">${label}</div>${html}</div>`;
+    const li=(text,col='#e5e7eb')=>`<div style="display:flex;gap:8px;padding:6px 0;border-bottom:1px solid #1f2937;font-size:12px;line-height:1.5;color:${col}"><span style="flex-shrink:0;color:#4b5563">▸</span><span>${text}</span></div>`;
+    const tag=(label,col)=>`<span style="font-size:10px;font-weight:600;color:${col};background:${col}1a;border:1px solid ${col}33;padding:1px 7px;border-radius:4px;margin-right:4px">[${label}]</span>`;
+    const meta=`<div style="font-size:11px;color:#6b7280;margin-bottom:18px">${p.industry} · ${p.stage} · Month ${p.month} · Score: <strong style="color:${rc}">${p.score}%</strong> · ${pill(p.risk.toUpperCase(),rc)}</div>`;
+
+    const DOCS = {
+      // ─── ACTION PLANS ────────────────────────────────────────────────────────
+      0: { // Maria Rodriguez
+        plan: meta+
+          section('This Month\'s Focus — Technology & Automation','#60a5fa',
+            li('Complete Customer Journey Automation Decision Tree (Week 4 homework — currently outstanding)')+
+            li('Evaluate and select CRM platform compatible with Squarespace. Shortlist: HubSpot Free, Toast Loyalty, Google Sheets + Zapier')+
+            li('Decide on email/SMS platform before brick-and-mortar opens. Constraint: must work with future Shopify migration'))+
+          section('Carry-Forward Priority — Legal & Compliance (M2)','#ef4444',
+            tag('RULE','#ef4444')+' <strong style="color:#f87171">LLC formation is overdue.</strong> 8 months to opening. No entity = no insurance, no lease, no permits.<br><div style="margin-top:8px">'+
+            li('File LLC paperwork this month — deadline is non-negotiable given permits timeline','#fca5a5')+
+            li('Schedule legal clinic appointment this week (Thrive partner referral available)')+
+            li('Revisit M2 action plan: Operating Agreement template is in your Google Classroom library')+'</div>')+
+          section('Assigned Exercises','#8b5cf6',
+            tag('RULE','#60a5fa')+'  AI Tool Cost-Benefit Matrix — evaluate 3 automation options<br>'+
+            tag('RULE','#60a5fa')+'  Customer Journey Automation Decision Tree — complete all four branches<br>'+
+            tag('RULE','#ef4444')+'  LLC Formation Checklist — complete and submit confirmation<br>'+
+            tag('RULE','#60a5fa')+'  Vendor Integration Checklist — after CRM decision is made')+
+          section('What Good Looks Like at Month 6','#10b981',
+            li('LLC filed and confirmation number in hand')+
+            li('CRM platform selected, free trial active')+
+            li('Decision Tree homework submitted with tool recommendations documented')+
+            li('Automation budget defined: what Maria will spend vs. what she\'ll DIY'))
+      },
+      1: { // Logan Montgomery
+        plan: meta+
+          section('⚠ Engagement Alert — Immediate Action Required','#ef4444',
+            tag('RULE','#ef4444')+'  <strong style="color:#f87171">Rule R_engagement_critical_01 fired.</strong> Homework completion: 90% → 40%. App silent 9 days.<br><br>'+
+            li('Heather to schedule 1:1 call within 48 hours — do not wait for scheduled session','#fca5a5')+
+            li('Ask Logan directly about external blockers: personal, financial, or business-related','#fca5a5')+
+            li('Modified milestone timeline available if needed — assess fit on the call'))+
+          section('Focus Areas — Financial Health & Operations','#f59e0b',
+            li('Cash Flow Worksheet is overdue — primary gap per M1 assessment')+
+            li('Unit economics below benchmark for early-ops SaaS: pricing model needs documentation')+
+            li('Operations score (52%) trending yellow — systems underdeveloped for current growth pace'))+
+          section('Assigned Exercises','#8b5cf6',
+            tag('RULE','#ef4444')+'  Monthly Cash Flow Tracker<br>'+
+            tag('RULE','#ef4444')+'  Break-Even Analysis Template<br>'+
+            tag('RULE','#f59e0b')+'  SOP Template Library — at least 2 core processes documented')+
+          section('If Logan Re-Engages: Month 5 Targets','#6b7280',
+            li('3 homework submissions completed by end of week')+
+            li('Cash flow model done — even rough version acceptable')+
+            li('Back to 3+ app logins/week'))
+      },
+      2: { // Diego Morales
+        plan: meta+
+          section('Primary Focus — Financial Health (M1 Score: 32%)','#ef4444',
+            tag('RULE','#ef4444')+'  <strong style="color:#f87171">Rule R_fin_food_pre_rev_01 fired.</strong> Score below 40% threshold.<br><br>'+
+            li('Complete Startup Budget Worksheet — not submitted from M1','#fca5a5')+
+            li('Build Monthly Cash Flow Tracker with actual food production cost inputs')+
+            li('Peer mentoring session with Priya Sharma scheduled — financial modeling focus'))+
+          section('Secondary Focus — Technology & Automation','#f59e0b',
+            li('No CRM or digital infrastructure plan in place')+
+            li('POS system selection needed before pre-revenue stage ends')+
+            li('Website Platform Selection worksheet assigned for this month'))+
+          section('Assigned Exercises','#8b5cf6',
+            tag('RULE','#ef4444')+'  Startup Budget Worksheet (overdue from M1)<br>'+
+            tag('RULE','#ef4444')+'  Monthly Cash Flow Tracker<br>'+
+            tag('RULE','#f59e0b')+'  Website Platform Selection document<br>'+
+            tag('RULE','#f59e0b')+'  POS System Comparison workbook')+
+          section('Bright Spot','#10b981',
+            li('Operations & Supply Chain score: 68% and improving. Food production SOPs are progressing — carry this discipline into financial planning.'))
+      },
+      3: { // Priya Sharma
+        plan: meta+
+          section('Primary Focus — People & HR (First Hire in Progress)','#f59e0b',
+            tag('RULE','#f59e0b')+'  Rule R_hr_consulting_scaling_01 fired: first hire pending without onboarding documentation.<br><br>'+
+            li('Complete Onboarding Checklist before new hire start date')+
+            li('Finalize Job Description — use template in Classroom library, customize for consulting context')+
+            li('Set up 1:1 cadence and first-90-days framework before day one'))+
+          section('Acceleration Opportunity','#10b981',
+            li('Financial Health (88%) and Strategy (85%) are ahead of benchmark — consider previewing M6 Sales curriculum early')+
+            li('Cohort mentor opportunity: pair with Diego Morales for financial planning support. 1 session, structured around cash flow basics')+
+            li('Series A readiness discussion appropriate at next coaching session — revenue trajectory and team structure both progressing'))+
+          section('Assigned Exercises','#8b5cf6',
+            tag('RULE','#f59e0b')+'  Interview Question Bank<br>'+
+            tag('RULE','#f59e0b')+'  Onboarding Checklist<br>'+
+            tag('LLM','#a78bfa')+'  Compensation & Benefits Comparison Matrix — optional, for hire negotiation context')+
+          section('Month 6 Preview','#6b7280',
+            li('Sales & Customer Acquisition curriculum — Priya\'s pipeline is strong; focus will be on pricing strategy and retention mechanics'))
+      },
+      4: { // James Kimura
+        plan: meta+
+          section('Primary Focus — Marketing & Brand','#f59e0b',
+            tag('RULE','#f59e0b')+'  Rule R_mktg_retail_early_ops_01 fired: social consistency below 3/week, no paid channel plan.<br><br>'+
+            li('Complete Social Media Playbook — content calendar for retail context')+
+            li('Ad Budget Calculator: define what percentage of margin is available for paid channels')+
+            li('Local SEO audit: Google Business Profile, review response cadence, map-pack presence for retail location'))+
+          section('On Track — Operations & Financial Health','#10b981',
+            li('Inventory system implemented and running — strong execution')+
+            li('Margins improving Q/Q — no action needed, maintain current discipline')+
+            li('Operations score (78%) above benchmark — carry this into M6 Sales planning'))+
+          section('Assigned Exercises','#8b5cf6',
+            tag('RULE','#f59e0b')+'  Social Media Playbook<br>'+
+            tag('RULE','#f59e0b')+'  Ad Budget Calculator<br>'+
+            tag('LLM','#a78bfa')+'  Platform Selection Guide — Instagram/Facebook vs. local print for retail')+
+          section('Target by Month 6','#6b7280',
+            li('Content calendar live with 3 posts/week minimum')+
+            li('Paid budget defined, even if not yet spent')+
+            li('Google Business Profile claimed and active'))
+      },
+      5: { // Sarah Liu
+        plan: meta+
+          section('Primary Focus — Leadership Development','#f59e0b',
+            tag('RULE','#f59e0b')+'  Rule R_lead_services_early_ops_01 fired: team size ≥ 2, delegation score below 65%.<br><br>'+
+            li('Implement 1:1 meeting cadence with direct reports — weekly, 30 minutes, structured')+
+            li('Complete Performance Review Framework — set expectations before they\'re needed')+
+            li('Time audit: document where 80% of Sarahs time currently goes. Identify top 2 delegation candidates'))+
+          section('Strong Performance Across Core Areas','#10b981',
+            li('Financial Health (80%) — revenue growing, pricing strategy solid')+
+            li('Customer Experience (75%) — NPS improving; no action needed this month')+
+            li('Homework completion: 5/5. Engagement is excellent — channel this into leadership work'))+
+          section('Assigned Exercises','#8b5cf6',
+            tag('RULE','#f59e0b')+'  1:1 Meeting Template<br>'+
+            tag('RULE','#f59e0b')+'  Performance Review Framework<br>'+
+            tag('LLM','#a78bfa')+'  Leadership Self-Assessment — optional but well-timed with team growth')+
+          section('Preview — Month 10 Leadership Curriculum','#6b7280',
+            li('Sarah is ahead of program pace. Leadership & Self-Dev module content can be introduced early if she wants to run ahead.'))
+      },
+      6: { // Carlos Vasquez
+        plan: meta+
+          section('Primary Focus — Marketing & Brand (Second Location Launch)','#ef4444',
+            tag('RULE','#ef4444')+'  Rule R_mktg_restaurant_early_ops_01 fired: 2 locations, no marketing plan for second site.<br><br>'+
+            li('Draft location-specific marketing plan before second site opens','#fca5a5')+
+            li('Local SEO: separate Google Business Profile for second location, distinct from first')+
+            li('Complete Content Calendar Template — differentiate brand voice between locations or unify intentionally'))+
+          section('Watch — Financial Health (Cash Flow)','#f59e0b',
+            li('Cash flow tight with second location investment — Monthly Cash Flow Tracker assigned')+
+            li('Break-even timeline for second location needs to be documented')+
+            li('Expansion financing structure: document terms and monthly obligations'))+
+          section('Assigned Exercises','#8b5cf6',
+            tag('RULE','#ef4444')+'  Content Calendar Template<br>'+
+            tag('RULE','#ef4444')+'  Local SEO Basics Workbook<br>'+
+            tag('RULE','#f59e0b')+'  Monthly Cash Flow Tracker<br>'+
+            tag('LLM','#a78bfa')+'  Local Marketing Playbook — restaurant/multi-location context')+
+          section('Strength to Build On','#10b981',
+            li('Operations score (78%) is strong. Second location ops are solid — the gap is marketing, not execution.'))
+      },
+      7: { // Linh Nguyen
+        plan: meta+
+          section('Primary Focus — Financial Health','#ef4444',
+            tag('RULE','#ef4444')+'  Rule R_fin_online_pre_rev_01 fired: no revenue model, burn rate undocumented.<br><br>'+
+            li('Complete Startup Budget Worksheet — define monthly burn before pre-revenue stage ends','#fca5a5')+
+            li('Build revenue model: 3 scenarios (conservative, base, optimistic) for first 6 months post-launch')+
+            li('Break-Even Analysis: at what monthly order volume does the e-commerce business sustain itself?'))+
+          section('Strength — Technology & Automation (72%)','#10b981',
+            li('Strong digital skills and tech stack in place — this is a competitive advantage')+
+            li('Use this month to turn digital capability into financial visibility: connect analytics to revenue projections')+
+            li('Good candidate for peer pairing with James Kimura — retail financial planning context is transferable'))+
+          section('Assigned Exercises','#8b5cf6',
+            tag('RULE','#ef4444')+'  Startup Budget Worksheet<br>'+
+            tag('RULE','#ef4444')+'  Break-Even Analysis Template<br>'+
+            tag('LLM','#a78bfa')+'  Revenue Stream Analysis — e-commerce unit economics focus')+
+          section('Target by Month 6','#6b7280',
+            li('Revenue model documented, even in rough form')+
+            li('Monthly burn rate defined and tracked')+
+            li('Break-even month identified'))
+      }
+    };
+
+    const SUMMARIES = {
+      0: meta+ // Maria
+        section('Where Maria Stands','#60a5fa',
+          '<p style="font-size:12px;line-height:1.6;margin-bottom:8px">Maria is one of the more complete participants in the cohort — strong operations, improving marketing, actively engaged. The LLC gap is the one item that could create real problems if it slips another month. Everything else is on trajectory.</p>')+
+        section('Top Issues to Address in This Session','#ef4444',
+          li(tag('RULE','#ef4444')+' <strong>LLC still not filed.</strong> 8 months to opening. This is blocking insurance, lease negotiation, and city permits. She knows it — she needs a deadline and a referral, not more information.')+
+          li(tag('RULE','#f59e0b')+' <strong>Technology homework is outstanding (Week 4).</strong> Decision Tree for customer journey automation is the remaining piece. She\'s done 2/4 homework items this month.')+
+          li(tag('LLM','#a78bfa')+' <strong>CRM decision is looping.</strong> Maria identified Squarespace as her current platform in Week 3 homework but hasn\'t narrowed CRM shortlist. She may be overthinking compatibility.'))+
+        section('Suggested Opening','#8b5cf6',
+          '<div style="background:#1f2937;border-left:3px solid #8b5cf6;border-radius:4px;padding:10px 12px;font-size:12px;font-style:italic;color:#c4b5fd">"Maria — your operations and tech engagement have been genuinely strong this month. Before we get into the curriculum, I want to spend five minutes on the LLC. What\'s the actual blocker right now?"</div>')+
+        section('Session Agenda (30 min)','#6b7280',
+          li('0–5 min: LLC status — blocker identification, set 30-day hard deadline, provide legal clinic contact')+
+          li('5–15 min: Tech homework debrief — Decision Tree review, CRM shortlist narrowed to 1–2 options')+
+          li('15–25 min: Month 6 preview — Sales & Customer Acquisition is next. How does her current tech stack support customer acquisition?')+
+          li('25–30 min: Commitments for next 30 days — 3 specific actions with dates'))+
+        section('Watch For','#f59e0b',
+          li('Maria tends to add scope when she\'s avoiding a decision. If she brings up new tools or new research, redirect to the shortlist she already has.')+
+          li('8 months sounds like a lot of time. It isn\'t, once permits and construction lead times are factored in.')),
+
+      1: meta+ // Logan
+        section('Where Logan Stands','#ef4444',
+          '<p style="font-size:12px;line-height:1.6;margin-bottom:8px;color:#fca5a5"><strong>This is a retention risk, not a coaching gap.</strong> Logan was at 90% homework completion through Month 3. The drop is sudden, not gradual. Something changed externally. The goal of this session is to find out what — not to review curriculum.</p>')+
+        section('Pre-Session Check','#ef4444',
+          li(tag('RULE','#ef4444')+' App: 1 login this month. Last: 9 days ago. Zero AI Coach conversations.')+
+          li(tag('RULE','#ef4444')+' Homework: 2 of 5 submitted. Missing: Cash Flow Worksheet and Competitor Analysis Matrix.')+
+          li(tag('LLM','#a78bfa')+' Historical pattern: Logan was above-average through M3. This isn\'t a capability issue.'))+
+        section('Suggested Opening','#8b5cf6',
+          '<div style="background:#1f2937;border-left:3px solid #8b5cf6;border-radius:4px;padding:10px 12px;font-size:12px;font-style:italic;color:#c4b5fd">"Logan — I\'m not going to pretend I haven\'t noticed the shift. You were one of the most engaged people in this cohort through Month 3. Something changed. I\'d rather understand what\'s happening than push curriculum at you. What\'s going on?"</div>')+
+        section('Session Agenda','#6b7280',
+          li('0–10 min: Check in — listen, don\'t fix. Let Logan talk.')+
+          li('10–20 min: Assess together — is the program still the right fit? Is the timing wrong? Is there a business crisis?')+
+          li('20–30 min: Decision point — continue as-is, modified timeline, or structured pause. Have the modified timeline doc ready.')+
+          li('After call: document outcome and flag for Andy if modified timeline is selected'))+
+        section('Watch For','#f59e0b',
+          li('If Logan says "I\'ve just been busy" — ask what specifically changed in Month 3.')+
+          li('If there is a business crisis, the program content may actually be relevant — reframe it as a live tool, not homework.')+
+          li('Do not pressure for homework completion in this session. That\'s not the priority.')),
+
+      2: meta+ // Diego
+        section('Where Diego Stands','#60a5fa',
+          '<p style="font-size:12px;line-height:1.6;margin-bottom:8px">Diego is a slow starter who is showing real movement. Operations are improving (M3: 68%). Financial literacy is the core gap and it\'s significant — but it\'s a knowledge gap, not a motivation gap. He\'s submitting homework and engaging with the app.</p>')+
+        section('Top Issues to Address','#ef4444',
+          li(tag('RULE','#ef4444')+' <strong>Financial Health at 32%.</strong> Cash flow worksheet not completed from M1. This is the single biggest unlocking item.')+
+          li(tag('LLM','#a78bfa')+' <strong>Financial anxiety may be present.</strong> Food production founders with pre-revenue status often avoid financial modeling because the numbers are scary. Meet him there.')+
+          li(tag('RULE','#f59e0b')+' <strong>No CRM or digital plan.</strong> Not urgent this month, but tech infrastructure needs to be roughed out before pre-revenue stage ends.'))+
+        section('Suggested Opening','#8b5cf6',
+          '<div style="background:#1f2937;border-left:3px solid #8b5cf6;border-radius:4px;padding:10px 12px;font-size:12px;font-style:italic;color:#c4b5fd">"Diego — your operations work this month was genuinely solid. I want to spend today on the financial side, not because you\'re in trouble, but because getting the numbers on paper is the one thing that will make everything else feel more manageable. Let\'s start with just your monthly costs."</div>')+
+        section('Session Agenda','#6b7280',
+          li('0–5 min: Acknowledge operations progress — real positive')+
+          li('5–20 min: Work through Startup Budget Worksheet together on the call. Don\'t assign it for later — do the first pass live.')+
+          li('20–25 min: Peer mentoring intro — Priya has agreed to a 30-min session on financial modeling. Confirm logistics.')+
+          li('25–30 min: Tech plan: pick one platform to research before Month 6'))+
+        section('Watch For','#f59e0b',
+          li('If Diego deflects financial questions with operational talk — acknowledge the ops work and redirect.')+
+          li('The worksheet doesn\'t need to be perfect. A rough cash flow model that exists beats a perfect one that doesn\'t.')),
+
+      3: meta+ // Priya
+        section('Where Priya Stands','#10b981',
+          '<p style="font-size:12px;line-height:1.6;margin-bottom:8px">Priya is the top performer in the cohort. 100% homework completion, 22 app logins this month. The coaching work here is about acceleration and strategic thinking, not remediation. Her one gap is onboarding documentation for her first hire.</p>')+
+        section('Focus for This Session','#f59e0b',
+          li(tag('RULE','#f59e0b')+' <strong>First hire is in process without onboarding documentation.</strong> This is fixable in one session.')+
+          li(tag('LLM','#a78bfa')+' <strong>Cohort mentoring opportunity.</strong> Priya has the financial and operational maturity to help Diego. A structured peer session benefits both.')+
+          li(tag('LLM','#a78bfa')+' <strong>Series A conversation is timely.</strong> Revenue trajectory and team growth are both progressing. Worth probing her thinking.'))+
+        section('Suggested Opening','#8b5cf6',
+          '<div style="background:#1f2937;border-left:3px solid #8b5cf6;border-radius:4px;padding:10px 12px;font-size:12px;font-style:italic;color:#c4b5fd">"Priya — you\'re running ahead of the program and that\'s a good problem to have. I want to spend this session thinking about what you\'re building toward, not just what\'s due this month. Let\'s talk about the hire first, then I want to hear what the next 18 months look like in your head."</div>')+
+        section('Session Agenda','#6b7280',
+          li('0–10 min: First hire — onboarding checklist, first-90-days framework, set timeline')+
+          li('10–20 min: Series A readiness conversation — what does the cap table look like, what\'s the funding thesis')+
+          li('20–25 min: Cohort mentor ask — Diego financial session, 30 minutes, informal')+
+          li('25–30 min: Preview M6 Sales curriculum — Priya may benefit from running ahead'))+
+        section('Watch For','#f59e0b',
+          li('Priya moves fast. Make sure the hire has actual documentation, not just a verbal plan.')+
+          li('The mentor ask should be framed as mutual — Diego gets help, Priya practices teaching what she knows.')),
+
+      4: meta+ // James
+        section('Where James Stands','#60a5fa',
+          '<p style="font-size:12px;line-height:1.6;margin-bottom:8px">James is a consistent performer. Operations and financial health are solid. The coaching task this month is a focused push on marketing — specifically getting a content calendar live and defining a paid budget. He\'s close; he just needs to commit to the channel decision.</p>')+
+        section('Focus for This Session','#f59e0b',
+          li(tag('RULE','#f59e0b')+' <strong>Marketing score: 58%.</strong> Social consistency below benchmark. No paid channel plan.')+
+          li(tag('LLM','#a78bfa')+' <strong>James knows his operations cold.</strong> The marketing hesitation is likely indecision about channel, not lack of capability.')+
+          li(tag('LLM','#a78bfa')+' <strong>Retail context matters here.</strong> Local SEO and review management are higher-ROI for a retail location than Instagram ads.'))+
+        section('Suggested Opening','#8b5cf6',
+          '<div style="background:#1f2937;border-left:3px solid #8b5cf6;border-radius:4px;padding:10px 12px;font-size:12px;font-style:italic;color:#c4b5fd">"James — your ops and financial work are exactly where they should be. This month I want to put the full session into marketing, because it\'s the one gap and you\'re going into M6 Sales without the brand foundation built yet. What\'s been stopping you from picking a channel and committing?"</div>')+
+        section('Session Agenda','#6b7280',
+          li('0–5 min: Ops/financial check — brief, affirming')+
+          li('5–20 min: Channel decision — Google Business Profile vs. social vs. paid. Pick one paid channel today.')+
+          li('20–28 min: Content calendar: first 4 weeks outlined together on the call')+
+          li('28–30 min: Commitment — 3 posts/week, respond to all Google reviews within 48 hours'))+
+        section('Watch For','#f59e0b',
+          li('James may want to research more before deciding. Don\'t let him.')+
+          li('The goal is a decision and a calendar — imperfect and live beats perfect and theoretical.')),
+
+      5: meta+ // Sarah
+        section('Where Sarah Stands','#10b981',
+          '<p style="font-size:12px;line-height:1.6;margin-bottom:8px">Sarah is a strong, steady performer. 100% homework, excellent engagement. The one gap is delegation — she\'s growing a team and needs to build the management infrastructure before she needs it. This is a proactive session, not a remediation one.</p>')+
+        section('Focus for This Session','#f59e0b',
+          li(tag('RULE','#f59e0b')+' <strong>Delegation score below 65%.</strong> Team is growing; management frameworks need to precede the scaling, not follow it.')+
+          li(tag('LLM','#a78bfa')+' <strong>High performers often under-delegate.</strong> The risk is Sarah becoming the bottleneck as her team grows.')+
+          li(tag('LLM','#a78bfa')+' <strong>She\'s ahead of pace.</strong> This session can double as a preview of M10 Leadership content.'))+
+        section('Suggested Opening','#8b5cf6',
+          '<div style="background:#1f2937;border-left:3px solid #8b5cf6;border-radius:4px;padding:10px 12px;font-size:12px;font-style:italic;color:#c4b5fd">"Sarah — everything is running well, and that\'s actually what I want to talk about today. When things are going well is the right time to build the management structure. Before you need it. Walk me through what your team currently handles without you."</div>')+
+        section('Session Agenda','#6b7280',
+          li('0–10 min: Delegation audit — what does Sarah currently own that someone else could own in 90 days?')+
+          li('10–20 min: 1:1 cadence design — set up structure for direct reports now')+
+          li('20–28 min: Preview Leadership curriculum — introduce the self-assessment and why it\'s well-timed')+
+          li('28–30 min: One delegation commitment for this month'))+
+        section('Watch For','#f59e0b',
+          li('Sarah may feel she doesn\'t have "real" direct reports yet. Challenge that framing — anyone who reports to her is a direct report.')+
+          li('The 1:1 template should be started this week, not when she "has time."')),
+
+      6: meta+ // Carlos
+        section('Where Carlos Stands','#60a5fa',
+          '<p style="font-size:12px;line-height:1.6;margin-bottom:8px">Carlos is executing well operationally on a second restaurant concept. The coaching gap is a marketing plan gap — he\'s expanding without a differentiated marketing strategy for the new location. Cash flow is tight but not critical.</p>')+
+        section('Focus for This Session','#ef4444',
+          li(tag('RULE','#ef4444')+' <strong>No marketing plan for second location.</strong> Launch without one is a real risk for a restaurant concept.')+
+          li(tag('RULE','#f59e0b')+' <strong>Cash flow tight with expansion financing.</strong> Monthly obligations need to be documented.')+
+          li(tag('LLM','#a78bfa')+' <strong>Two-location restaurant is a brand question, not just a marketing question.</strong> Are both locations the same brand? Different positioning?'))+
+        section('Suggested Opening','#8b5cf6',
+          '<div style="background:#1f2937;border-left:3px solid #8b5cf6;border-radius:4px;padding:10px 12px;font-size:12px;font-style:italic;color:#c4b5fd">"Carlos — the operations story on Location 2 is solid. What I want to understand today is the marketing plan. When Location 2 opens, how does the neighborhood know it exists? Walk me through what you\'re thinking."</div>')+
+        section('Session Agenda','#6b7280',
+          li('0–5 min: Ops check on second location — brief')+
+          li('5–15 min: Brand question — one brand or two? Lock this decision first.')+
+          li('15–25 min: Location 2 marketing: Google Business Profile, launch promotions, local outreach plan')+
+          li('25–30 min: Cash flow check — break-even timeline for Location 2, monthly obligations documented'))+
+        section('Watch For','#f59e0b',
+          li('Carlos may treat marketing as a post-launch problem. It needs to start 6–8 weeks before opening.')+
+          li('The cash flow conversation may surface anxiety about expansion pace. Meet it directly.')),
+
+      7: meta+ // Linh
+        section('Where Linh Stands','#60a5fa',
+          '<p style="font-size:12px;line-height:1.6;margin-bottom:8px">Linh has strong digital instincts — tech score is 72% and the platform foundation is good. The core gap is financial visibility: she\'s building toward launch without a documented budget or revenue model. This is common and fixable.</p>')+
+        section('Focus for This Session','#ef4444',
+          li(tag('RULE','#ef4444')+' <strong>No revenue model and burn rate undocumented.</strong> Pre-revenue stage ends soon — needs financial plan before it does.')+
+          li(tag('LLM','#a78bfa')+' <strong>Linh\'s digital skills are an asset here.</strong> She can build a solid revenue model in a spreadsheet — she just needs to start.')+
+          li(tag('LLM','#a78bfa')+' <strong>E-commerce unit economics have specific drivers.</strong> CAC, AOV, and repeat purchase rate are the three numbers to build from.'))+
+        section('Suggested Opening','#8b5cf6',
+          '<div style="background:#1f2937;border-left:3px solid #8b5cf6;border-radius:4px;padding:10px 12px;font-size:12px;font-style:italic;color:#c4b5fd">"Linh — your tech stack is genuinely ahead of most people in the cohort at this stage. What I want to do today is connect that digital capability to the financial side. You\'re good with spreadsheets — let\'s build a rough revenue model together right now, on the call."</div>')+
+        section('Session Agenda','#6b7280',
+          li('0–5 min: Tech and engagement check — affirming')+
+          li('5–20 min: Live revenue model — 3 scenarios, starting from unit economics (product price, COGS, target margin)')+
+          li('20–25 min: Break-even: at what monthly order volume does the business sustain itself?')+
+          li('25–30 min: Peer pairing intro — James Kimura, retail financial planning context'))+
+        section('Watch For','#f59e0b',
+          li('If Linh says the revenue model needs more market research first — redirect. A rough model with assumptions noted is the goal.')+
+          li('E-commerce CAC can be volatile. Build the model on organic first, paid as upside.'))
+    };
+
+    const accentColors = {plan:'#60a5fa', summary:'#a78bfa', followup:'#10b981', benchmarks:'#f59e0b', export:'#6b7280', escalate:'#ef4444'};
+    const accent = accentColors[type] || '#60a5fa';
+
+    if(type==='plan'){
+      const d=DOCS[idx];if(!d)return;
+      this._docModal(
+        `<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:${accent};margin-bottom:5px">Monthly Action Plan — Month ${p.month}</div><div style="font-size:20px;font-weight:700;margin-bottom:4px">${p.name}</div>`,
+        accent, d.plan);
+    } else if(type==='summary'){
+      const d=SUMMARIES[idx];if(!d)return;
+      this._docModal(
+        `<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:${accent};margin-bottom:5px">Pre-Session Coach Summary</div><div style="font-size:20px;font-weight:700;margin-bottom:4px">${p.name}</div>`,
+        accent, d);
+    } else if(type==='followup'){
+      this._docModal(
+        `<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:${accent};margin-bottom:5px">Follow-Up Scheduled</div><div style="font-size:20px;font-weight:700;margin-bottom:4px">${p.name}</div>`,
+        accent,
+        `<div style="background:#0d2818;border:1px solid #10b981;border-radius:6px;padding:14px;font-size:12px;color:#34d399;margin-bottom:16px">✓ Follow-up session marked. Andy has been notified. Calendar invite sent to ${p.name}.</div>`+
+        `<div style="font-size:12px;color:#9ca3af;line-height:1.7">Recommended: 30-min 1:1 within <strong style="color:#e5e7eb">${p.risk==='red'?'48 hours':'7 days'}</strong><br>Format: Video call<br>Primary focus: ${p.risks[0].topic}<br>Prepared agenda: auto-generated from this month's rule firings</div>`);
+    } else if(type==='benchmarks'){
+      this._docModal(
+        `<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:${accent};margin-bottom:5px">Benchmark Change History</div><div style="font-size:20px;font-weight:700;margin-bottom:4px">${p.name}</div>`,
+        accent,
+        section('Active Threshold Rules','#f59e0b',
+          p.benchmarkRules.map(r=>`<div style="font-family:monospace;font-size:10px;color:#93c5fd;background:#1f2937;padding:6px 8px;border-radius:4px;margin-bottom:4px">${r}</div>`).join(''))+
+        section('Version History','#6b7280',
+          li('v1.0 — Apr 2025 · Initial benchmark definitions. All thresholds set at program launch.')+
+          li('v1.1 — Sep 2025 · Legal & Compliance threshold raised from 50% to 60% for pre-revenue stage after Cohort 0 review.')+
+          li('v1.2 — Jan 2026 · Technology & Automation Q2 threshold tightened: < 5 (was < 4) based on Cohort 0 outcomes data.')+
+          li('v1.3 — Mar 2026 · Engagement alert rule added: R_engagement_critical_01. New in Cohort 1.'))+
+        `<div style="font-size:10px;color:#4b5563;margin-top:12px">Changes to benchmark thresholds are made in the Layer 7 configuration spreadsheet by Heather or the curriculum writer. All changes are versioned and logged.</div>`);
+    } else if(type==='export'){
+      this._docModal(
+        `<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:${accent};margin-bottom:5px">Export Package</div><div style="font-size:20px;font-weight:700;margin-bottom:4px">${p.name}</div>`,
+        accent,
+        `<div style="font-size:12px;color:#9ca3af;margin-bottom:14px">The following files would be included in the exported ZIP. In the full system these are generated on demand and delivered to Heather's admin folder.</div>`+
+        [
+          {file:`${p.name.replace(' ','_')}_M${p.month}_action_plan.pdf`,desc:'Monthly action plan — rules engine output + LLM enrichment'},
+          {file:`${p.name.replace(' ','_')}_M${p.month}_coach_summary.pdf`,desc:'Pre-session coach summary — top risks and agenda'},
+          {file:`${p.name.replace(' ','_')}_homework_scores_M1-M${p.month}.csv`,desc:'All homework submissions with LLM rubric scores'},
+          {file:`${p.name.replace(' ','_')}_assessment_log_M1-M${p.month}.json`,desc:'Raw assessment responses + rules fired each month'},
+          {file:`${p.name.replace(' ','_')}_engagement_history.csv`,desc:'App logins, AI Coach conversations, video completions'},
+          {file:`${p.name.replace(' ','_')}_benchmark_audit_log.txt`,desc:'Full rule firing log with version IDs'},
+        ].map(f=>`<div style="display:flex;gap:10px;padding:8px 0;border-bottom:1px solid #1f2937;align-items:flex-start"><span style="font-size:18px;flex-shrink:0">📄</span><div><div style="font-size:12px;font-weight:600;font-family:monospace;color:#93c5fd">${f.file}</div><div style="font-size:11px;color:#6b7280;margin-top:2px">${f.desc}</div></div></div>`).join(''));
+    } else if(type==='escalate'){
+      this._docModal(
+        `<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:${accent};margin-bottom:5px">Issue Escalation</div><div style="font-size:20px;font-weight:700;margin-bottom:4px">${p.name}</div>`,
+        accent,
+        `<div style="background:#1f0a0a;border:1px solid #ef4444;border-radius:6px;padding:14px;font-size:12px;color:#f87171;margin-bottom:16px">⚠ Escalation logged. Heather has been notified directly. This participant is flagged for priority review at the next team standup.</div>`+
+        `<div style="font-size:12px;color:#9ca3af;line-height:1.8"><strong style="color:#e5e7eb">Escalation reason:</strong> ${p.risks[0].flag}<br><strong style="color:#e5e7eb">Rule triggered:</strong> ${p.benchmarkRules[0]||'Manual escalation'}<br><strong style="color:#e5e7eb">Recommended response time:</strong> 48 hours<br><strong style="color:#e5e7eb">Assigned to:</strong> Heather McBroom (primary), Andy (backup)</div>`);
+    }
+  },
+
+  _docModal(titleHtml, accentColor, bodyHtml){
+    const old=document.getElementById('coaching-doc-overlay');if(old)old.remove();
+    const section=(label,col,html)=>`<div style="margin-bottom:16px"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.7px;color:${col};margin-bottom:7px">${label}</div>${html}</div>`;
+    const overlay=document.createElement('div');
+    overlay.id='coaching-doc-overlay';
+    overlay.style.cssText='position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(10,14,26,0.93);backdrop-filter:blur(10px);z-index:500;display:flex;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto;';
+    overlay.addEventListener('click',e=>{if(e.target===overlay)overlay.remove();});
+    const modal=document.createElement('div');
+    modal.style.cssText=`background:#111827;border:1px solid #374151;border-top:3px solid ${accentColor};border-radius:10px;padding:24px 22px;width:100%;max-width:660px;margin:auto;position:relative;`;
+    modal.innerHTML=`<button onclick="document.getElementById('coaching-doc-overlay').remove()" style="position:absolute;top:12px;right:12px;background:#1f2937;border:1px solid #374151;color:#9ca3af;width:30px;height:30px;border-radius:6px;font-size:18px;cursor:pointer;line-height:1;font-family:inherit">×</button>${titleHtml}${bodyHtml}<div style="margin-top:20px;padding-top:12px;border-top:1px solid #1f2937;font-size:10px;color:#374151">Thrive AI · Deterministic rules [RULE] + LLM enrichment [LLM] · ${new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</div>`;
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+  },
 
   enter(){
     orbitState.theta=0.3;orbitState.phi=Math.PI/2.3;orbitState.radius=26;orbitState.target.set(0,0,0);updateCamera();
+    this.selectedParticipant=null;this.activeFilter='all';this.cardObjects=[];
+
     this.heatherFig=buildHeather();this.heatherFig.scale.setScalar(0.9);this.heatherFig.position.set(-8,0,0);scene.add(this.heatherFig);
     const hl=makeLabel('Heather (Coach)','#60a5fa',0.7);hl.position.set(-8,-2.5,0);scene.add(hl);
 
-    // Dashboard screen (large floating panel)
+    // Dashboard screen
     this.dashScreen=new THREE.Group();
     const screenBg=new THREE.Mesh(new THREE.BoxGeometry(12,7,0.08),new THREE.MeshStandardMaterial({color:0x111827,roughness:0.3}));
     this.dashScreen.add(screenBg);
     const screenBorder=new THREE.Mesh(new THREE.BoxGeometry(12.2,7.2,0.04),new THREE.MeshStandardMaterial({color:0x374151,roughness:0.5}));
     screenBorder.position.z=-0.05;this.dashScreen.add(screenBorder);
-    // Header bar
     const header=new THREE.Mesh(new THREE.BoxGeometry(12,0.7,0.1),new THREE.MeshStandardMaterial({color:0x1f2937}));
     header.position.y=3.15;this.dashScreen.add(header);
-    const headerLbl=makeLabel('Coach Dashboard — Scale Accelerator','#60a5fa',0.55);headerLbl.position.set(0,3.15,0.15);this.dashScreen.add(headerLbl);
+    const headerLbl=makeLabel('Coach Dashboard — Scale Accelerator Cohort 1','#60a5fa',0.42);headerLbl.position.set(0,3.15,0.15);this.dashScreen.add(headerLbl);
 
-    // Participant cards on the dashboard
-    const participants=[
-      {name:'Maria R.',score:74,risk:0xf59e0b,x:-4.5,y:1.5},
-      {name:'Logan M.',score:35,risk:0xef4444,x:-1.5,y:1.5},
-      {name:'Diego M.',score:38,risk:0xef4444,x:1.5,y:1.5},
-      {name:'Priya S.',score:82,risk:0x10b981,x:4.5,y:1.5},
-      {name:'James K.',score:72,risk:0x10b981,x:-4.5,y:-0.5},
-      {name:'Sarah L.',score:78,risk:0x10b981,x:-1.5,y:-0.5},
-      {name:'Carlos V.',score:65,risk:0xf59e0b,x:1.5,y:-0.5},
-      {name:'Linh N.',score:62,risk:0xf59e0b,x:4.5,y:-0.5},
-    ];
-    this.participantCards=[];
-    participants.forEach(p=>{
-      const card=new THREE.Mesh(new THREE.BoxGeometry(2.5,1.5,0.06),new THREE.MeshStandardMaterial({color:0x1f2937,roughness:0.4}));
-      card.position.set(p.x,p.y,0.08);this.dashScreen.add(card);
-      const riskBar=new THREE.Mesh(new THREE.BoxGeometry(2.5,0.12,0.08),new THREE.MeshStandardMaterial({color:p.risk,emissive:p.risk,emissiveIntensity:0.4}));
-      riskBar.position.set(p.x,p.y+0.69,0.08);this.dashScreen.add(riskBar);
-      const nameLbl=makeLabel(p.name,'#e5e7eb',0.28);nameLbl.position.set(p.x,p.y+0.3,0.2);this.dashScreen.add(nameLbl);
-      const scoreLbl=makeLabel(p.score+'%','#'+p.risk.toString(16).padStart(6,'0'),0.32);scoreLbl.position.set(p.x,p.y-0.2,0.2);this.dashScreen.add(scoreLbl);
-      this.participantCards.push({card,p});
+    // Participant cards — now fully interactive
+    this.cardObjects=[];
+    this.PARTICIPANTS.forEach((p,idx)=>{
+      const group=new THREE.Group();
+      // Card base
+      const cardBase=new THREE.Mesh(new THREE.BoxGeometry(2.5,1.5,0.06),new THREE.MeshStandardMaterial({color:0x1f2937,roughness:0.4}));
+      group.add(cardBase);
+      // Risk accent bar at top of card
+      const riskBar=new THREE.Mesh(new THREE.BoxGeometry(2.5,0.12,0.08),new THREE.MeshStandardMaterial({color:p.riskHex,emissive:p.riskHex,emissiveIntensity:0.5}));
+      riskBar.position.y=0.69;group.add(riskBar);
+      // Name label
+      const nameLbl=makeLabel(p.short,'#e5e7eb',0.28);nameLbl.position.set(0,0.3,0.15);group.add(nameLbl);
+      // Score
+      const scoreColor='#'+p.riskHex.toString(16).padStart(6,'0');
+      const scoreLbl=makeLabel(p.score+'%',scoreColor,0.32);scoreLbl.position.set(0,-0.2,0.15);group.add(scoreLbl);
+      // Industry micro-label
+      const indLbl=makeLabel(p.industry.split('/')[0].trim().substring(0,12),'#6b7280',0.2);indLbl.position.set(0,-0.52,0.15);group.add(indLbl);
+      // Missing HW dot
+      if(p.homework.missing){
+        const hwDot=new THREE.Mesh(new THREE.SphereGeometry(0.1,8,8),new THREE.MeshStandardMaterial({color:0x8b5cf6,emissive:0x8b5cf6,emissiveIntensity:0.8}));
+        hwDot.position.set(1.05,0.5,0.1);group.add(hwDot);
+      }
+      group.position.set(p.x,p.y,0.08);
+      group.userData={participantIdx:idx,clickable:true};
+      this.dashScreen.add(group);
+      this.cardObjects.push({group,p});
     });
 
-    // "25 Participants" counter
-    const counterLbl=makeLabel('25 Active  |  3 Red  |  7 Yellow  |  15 Green','#9ca3af',0.4);counterLbl.position.set(0,-2.8,0.15);this.dashScreen.add(counterLbl);
-
+    const counterLbl=makeLabel('25 Active  ·  3 Red  ·  7 Yellow  ·  15 Green  ·  Purple dot = missing HW','#9ca3af',0.35);counterLbl.position.set(0,-2.8,0.15);this.dashScreen.add(counterLbl);
     this.dashScreen.position.set(3,4,0);scene.add(this.dashScreen);
 
-    // Maria's detail card (floating to the right)
+    // Maria detail card (floating right)
     this.mariaCard=new THREE.Group();
     const cardBase=new THREE.Mesh(new THREE.BoxGeometry(2.8,3.6,0.12),new THREE.MeshStandardMaterial({color:0x1f2937,roughness:0.4}));
     this.mariaCard.add(cardBase);
     const cardHeader=new THREE.Mesh(new THREE.BoxGeometry(2.8,0.6,0.14),new THREE.MeshStandardMaterial({color:0xec4899,emissive:0xec4899,emissiveIntensity:0.3}));
     cardHeader.position.y=1.5;this.mariaCard.add(cardHeader);
+    const cardHeaderLbl=makeLabel('Maria R. — Focus Card','#f9a8d4',0.28);cardHeaderLbl.position.set(0,1.5,0.1);this.mariaCard.add(cardHeaderLbl);
     const redFlag=new THREE.Mesh(new THREE.SphereGeometry(0.2,12,12),new THREE.MeshStandardMaterial({color:0xef4444,emissive:0xef4444,emissiveIntensity:0.6}));
     redFlag.position.set(-0.8,0.4,0.1);this.mariaCard.add(redFlag);
     const redLbl=makeLabel('Legal 58%','#ef4444',0.22);redLbl.position.set(-0.8,0.0,0.15);this.mariaCard.add(redLbl);
@@ -1397,7 +2068,7 @@ scenes.coaching={
     const yelLbl=makeLabel('Mktg 68%','#f59e0b',0.22);yelLbl.position.set(0.2,0.0,0.15);this.mariaCard.add(yelLbl);
     const greenFlag=new THREE.Mesh(new THREE.SphereGeometry(0.18,12,12),new THREE.MeshStandardMaterial({color:0x10b981,emissive:0x10b981,emissiveIntensity:0.5}));
     greenFlag.position.set(0.8,0.4,0.1);this.mariaCard.add(greenFlag);
-    // Score bars
+    const greenLbl=makeLabel('Ops 81%','#10b981',0.22);greenLbl.position.set(0.8,0.0,0.15);this.mariaCard.add(greenLbl);
     for(let i=0;i<4;i++){
       const barBg=new THREE.Mesh(new THREE.BoxGeometry(2.0,0.15,0.06),new THREE.MeshStandardMaterial({color:0x2d3748}));
       barBg.position.set(0,-0.6-i*0.4,0.1);this.mariaCard.add(barBg);
@@ -1407,9 +2078,9 @@ scenes.coaching={
       barFill.position.set(-1.0*(1-widths[i]),-0.6-i*0.4,0.1);this.mariaCard.add(barFill);
     }
     this.mariaCard.position.set(12,2,2);scene.add(this.mariaCard);
-    const mcl=makeLabel(MARIA.name,'#f9a8d4',0.55);mcl.position.set(12,4.8,2);scene.add(mcl);
+    const mcl=makeLabel(MARIA.name+' — click card to explore','#f9a8d4',0.45);mcl.position.set(12,4.8,2);scene.add(mcl);
 
-    // Pipeline status orbs (bottom)
+    // Pipeline orbs
     const pipeline=['Ingestion','Rules Engine','LLM','Formatter','Dashboard'];
     const pColors=[0x8b5cf6,0xec4899,0xf59e0b,0x10b981,0x3b82f6];
     this.riskFlags=[];
@@ -1418,18 +2089,24 @@ scenes.coaching={
       orb.position.set(-6+i*3,-5,0);scene.add(orb);
       const lbl=makeLabel(name,'#'+pColors[i].toString(16).padStart(6,'0'),0.32);lbl.position.set(-6+i*3,-6.0,0);scene.add(lbl);
       const greenDot=new THREE.Mesh(new THREE.SphereGeometry(0.12,8,8),new THREE.MeshBasicMaterial({color:0x10b981}));greenDot.position.set(-6+i*3,-4.3,0);scene.add(greenDot);
-      // Connection lines between pipeline stages
       if(i<pipeline.length-1){
         const lineGeo=new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(-6+i*3+0.4,-5,0),new THREE.Vector3(-6+(i+1)*3-0.4,-5,0)]);
         const line=new THREE.Line(lineGeo,new THREE.LineBasicMaterial({color:0x374151}));scene.add(line);
       }
       this.riskFlags.push({orb,lbl,greenDot});
     });
+
+    this._buildFilterBar();
     this._renderPanel();
   },
 
+  exit(){
+    const el=document.getElementById('coach-filter-bar');if(el)el.remove();
+    const el2=document.getElementById('risk-drill-overlay');if(el2)el2.remove();
+  },
+
   _renderPanel(){
-    panel.innerHTML=`<h2>Heather's Coach Dashboard</h2><p class="lead">Heather's command center. Instead of 75 hours of manual review, everything is prioritized, flagged, and pre-loaded. She focuses on coaching, not paperwork.</p>
+    panel.innerHTML=`<h2>Heather's Coach Dashboard</h2><p class="lead">Heather's command center. Click any participant card on the 3D dashboard to open their full coaching profile. Use the filter bar to prioritize by risk level or missing homework.</p>
 
       <h3>Cohort At-a-Glance</h3>
       <div class="scoreboard">
@@ -1438,113 +2115,87 @@ scenes.coaching={
         <div class="score-tile"><div class="num" style="color:#fbbf24">Month 5</div><div class="lbl">Current<br>Period</div></div>
       </div>
       <div class="dash-grid">
-        <div class="dash-card"><div class="label">Red Flags</div><div class="value" style="color:#f87171">3</div><div class="sub">participants need intervention</div></div>
+        <div class="dash-card"><div class="label">Red Flags</div><div class="value" style="color:#f87171">3</div><div class="sub">need intervention</div></div>
         <div class="dash-card"><div class="label">Yellow Flags</div><div class="value" style="color:#fbbf24">7</div><div class="sub">monitoring closely</div></div>
-        <div class="dash-card"><div class="label">On Track</div><div class="value" style="color:#34d399">15</div><div class="sub">green across the board</div></div>
-        <div class="dash-card"><div class="label">Attendance</div><div class="value">88%</div><div class="sub">cohort average</div></div>
+        <div class="dash-card"><div class="label">On Track</div><div class="value" style="color:#34d399">15</div><div class="sub">green across board</div></div>
+        <div class="dash-card"><div class="label">Missing HW</div><div class="value" style="color:#a78bfa">8</div><div class="sub">this week</div></div>
       </div>
 
-      <h3 style="cursor:pointer" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none';this.querySelector('span').textContent=this.nextElementSibling.style.display==='none'?'&#9654;':'&#9660;'">Coaching Priorities (AI-Generated) <span>&#9660;</span></h3>
+      <h3 style="cursor:pointer" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none';this.querySelector('span').textContent=this.nextElementSibling.style.display==='none'?'▶':'▼'">Top Coaching Priorities <span>▼</span></h3>
       <div>
-        <div style="font-size:10px;color:var(--text-dim);margin-bottom:8px">Ranked by urgency &middot; Updated after each assessment</div>
+        <div style="font-size:10px;color:var(--text-dim);margin-bottom:8px">AI-ranked by urgency · updated after each assessment · click card to expand</div>
         <div class="detail-box" style="border-left-color:#ef4444">
           <div style="display:flex;justify-content:space-between;align-items:center"><div class="title" style="color:#f87171">1. Logan Montgomery</div><span class="pill red">AT RISK</span></div>
-          <div class="meta">Tech &middot; Early Operations &middot; Readiness declining since M3</div>
-          <p style="font-size:11px;margin-top:4px"><strong>Disengaging.</strong> Homework completion dropped from 90% to 40%. Has not logged into app in 9 days. Last AI coach conversation: 2 weeks ago.</p>
+          <div class="meta">Tech · Early Operations · Readiness declining M3→M5</div>
+          <p style="font-size:11px;margin-top:4px"><strong>Disengaging.</strong> Homework completion 90%→40%. App silent 9 days. 0 AI Coach conversations this month.</p>
           <p style="font-size:10px;color:var(--accent-2);margin-top:4px"><strong>Recommended:</strong> Immediate 1:1. Ask about external blockers. Consider modified timeline.</p>
         </div>
         <div class="detail-box" style="border-left-color:#ef4444">
           <div style="display:flex;justify-content:space-between;align-items:center"><div class="title" style="color:#f87171">2. Maria Rodriguez</div><span class="pill red">LEGAL GAP</span></div>
-          <div class="meta">Restaurant &middot; Pre-revenue &middot; 8 months to opening</div>
-          <p style="font-size:11px;margin-top:4px"><strong>No LLC filed.</strong> Legal & Compliance score 58%. Strong everywhere else but entity formation is blocking insurance, permits, and lease negotiation.</p>
-          <p style="font-size:10px;color:var(--accent-2);margin-top:4px"><strong>Recommended:</strong> Connect with legal clinic. Set 30-day LLC deadline. Revisit M2 action plan.</p>
+          <div class="meta">Restaurant · Pre-revenue · 8 months to opening</div>
+          <p style="font-size:11px;margin-top:4px"><strong>No LLC filed.</strong> Legal 58%. Blocking insurance, permits, and lease negotiation. Strong everywhere else.</p>
+          <p style="font-size:10px;color:var(--accent-2);margin-top:4px"><strong>Recommended:</strong> Legal clinic this week. 30-day LLC deadline.</p>
         </div>
         <div class="detail-box" style="border-left-color:#ef4444">
           <div style="display:flex;justify-content:space-between;align-items:center"><div class="title" style="color:#f87171">3. Diego Morales</div><span class="pill red">FINANCIAL</span></div>
-          <div class="meta">Food Production &middot; Pre-revenue &middot; Slow start improving</div>
-          <p style="font-size:11px;margin-top:4px"><strong>Financial literacy is primary gap.</strong> M1 score: 32%. Has not completed cash flow worksheet. Improving on operations (M3: 68%).</p>
-          <p style="font-size:10px;color:var(--accent-2);margin-top:4px"><strong>Recommended:</strong> Pair with Priya (top performer) for financial mentoring. Assign supplemental budgeting exercises.</p>
-        </div>
-        <div class="detail-box" style="border-left-color:#f59e0b">
-          <div style="display:flex;justify-content:space-between;align-items:center"><div class="title" style="color:#fbbf24">4. Maria &mdash; Marketing Gap</div><span class="pill yellow">MONITOR</span></div>
-          <div class="meta">Month 4 &middot; Score: 68%</div>
-          <p style="font-size:11px;margin-top:4px">Customer persona solid. Content calendar weak (64%). Paid channels not explored. Restaurant industry context suggests local SEO and review management should be priority over paid ads.</p>
+          <div class="meta">Food Production · Pre-revenue · Improving slowly</div>
+          <p style="font-size:11px;margin-top:4px"><strong>Financial literacy gap.</strong> M1 score 32%. Cash flow worksheet incomplete. Ops improving (M3: 68%).</p>
+          <p style="font-size:10px;color:var(--accent-2);margin-top:4px"><strong>Recommended:</strong> Pair with Priya for financial mentoring.</p>
         </div>
       </div>
 
-      <h3 style="cursor:pointer;margin-top:14px" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none';this.querySelector('span').textContent=this.nextElementSibling.style.display==='none'?'&#9654;':'&#9660;'">Next Session Prep &mdash; Maria <span>&#9660;</span></h3>
-      <div>
-        <div class="pipe-section">
-          <div class="sub-label">Auto-Generated Agenda</div>
-          <ul>
-            <li><strong>Tech & Automation (M5 in progress)</strong> &mdash; CRM integration decision. Maria scored Q3 at 4/10. Walk through CRM selection worksheet. Revisit Decision Tree homework.</li>
-            <li><strong>LLC Formation (M2 carryover)</strong> &mdash; 8 months to opening. Entity formation must complete in 30 days or permits timeline is at risk.</li>
-            <li><strong>Squarespace compatibility</strong> &mdash; Week 3 homework identified Squarespace as current platform. Confirm shortlisted tools integrate.</li>
-          </ul>
-        </div>
-        <div class="pipe-section">
-          <div class="sub-label">Maria's Engagement This Month</div>
-          <ul>
-            <li>App logins: <strong>14 days</strong> (last: yesterday)</li>
-            <li>AI coach sessions: <strong>12</strong> (avg 3/week)</li>
-            <li>Videos watched: <strong>3 of 4</strong> (skipped: Automation Tools Overview)</li>
-            <li>Homework: <strong>2 of 4 submitted</strong> (2 due this week)</li>
-            <li>Avg time per session: <strong>28 min</strong></li>
-          </ul>
-        </div>
-      </div>
-
-      <h3 style="cursor:pointer;margin-top:14px" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none';this.querySelector('span').textContent=this.nextElementSibling.style.display==='none'?'&#9654;':'&#9660;'">Participant Roster <span>&#9654;</span></h3>
+      <h3 style="cursor:pointer;margin-top:14px" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none';this.querySelector('span').textContent=this.nextElementSibling.style.display==='none'?'▶':'▼'">Participant Roster <span>▶</span></h3>
       <div style="display:none">
-        <div style="font-size:10px;color:var(--text-dim);margin-bottom:6px">Click any row to see detailed coaching view</div>
+        <div style="font-size:10px;color:var(--text-dim);margin-bottom:6px">Click any row or the 3D card to see full coaching view</div>
         ${[
-          {name:'Priya Sharma',score:82,risk:'green',note:'Top performer. Scaling playbook on track.'},
-          {name:'Sarah Liu',score:78,risk:'green',note:'Steady improvement across all domains.'},
-          {name:'Ahmed Torres',score:76,risk:'green',note:'Strong execution. HR accelerating.'},
-          {name:'Emma Washington',score:75,risk:'green',note:'Expanding to 2nd location.'},
-          {name:'Maria Rodriguez',score:74,risk:'yellow',note:'Legal gap. Strong otherwise.'},
-          {name:'James Kimura',score:72,risk:'green',note:'Consistent. Marketing is weak spot.'},
-          {name:'Robert Chen',score:70,risk:'green',note:'SaaS. Good technical execution.'},
-          {name:'Rachel Kim',score:69,risk:'green',note:'Retail distribution expanding.'},
-          {name:'Tyler Bennett',score:68,risk:'green',note:'Landscaping. Year 3. Delegation improving.'},
-          {name:'Carlos Vasquez',score:65,risk:'yellow',note:'2nd restaurant. Operations strong.'},
-          {name:'David Park',score:64,risk:'green',note:'Management consulting. Steady.'},
-          {name:'Linh Nguyen',score:62,risk:'yellow',note:'Good digital. Needs financial support.'},
-          {name:'Will Thompson',score:60,risk:'green',note:'Digital agency. Growing clients.'},
-          {name:'Nina Patel',score:59,risk:'green',note:'Salon. Year 2.'},
-          {name:'Jordan Williams',score:58,risk:'green',note:'HR consulting. Building pipeline.'},
-          {name:'Marcus Johnson',score:57,risk:'green',note:'Plumbing. Scaling crew.'},
-          {name:'Sofia Reyes',score:56,risk:'green',note:'E-commerce. Strong marketing.'},
-          {name:'Keisha Brown',score:55,risk:'green',note:'Cleaning service. Building systems.'},
-          {name:'Oscar Rivera',score:54,risk:'green',note:'Electrical. Licensed.'},
-          {name:'Tasha Green',score:52,risk:'yellow',note:'Boutique. Inventory challenge.'},
-          {name:'Fatima Al-Said',score:48,risk:'yellow',note:'Strong vision. Early execution.'},
-          {name:'Mei Lin',score:45,risk:'yellow',note:'Bubble tea. Pre-revenue.'},
-          {name:'Ana Gutierrez',score:42,risk:'yellow',note:'Specialty food. Needs legal support.'},
-          {name:'Diego Morales',score:38,risk:'red',note:'Financial literacy gap.'},
-          {name:'Logan Montgomery',score:35,risk:'red',note:'AT RISK. Disengaging.'},
+          {name:'Priya Sharma',score:82,risk:'green',note:'Top performer. Scaling playbook on track.',hw:true},
+          {name:'Sarah Liu',score:78,risk:'green',note:'Steady improvement. Delegation developing.',hw:true},
+          {name:'Ahmed Torres',score:76,risk:'green',note:'Strong execution. HR accelerating.',hw:true},
+          {name:'Emma Washington',score:75,risk:'green',note:'Expanding to 2nd location.',hw:true},
+          {name:'Maria Rodriguez',score:74,risk:'yellow',note:'Legal gap. Strong otherwise.',hw:false},
+          {name:'James Kimura',score:72,risk:'green',note:'Marketing weak spot.',hw:false},
+          {name:'Robert Chen',score:70,risk:'green',note:'SaaS. Good tech execution.',hw:true},
+          {name:'Rachel Kim',score:69,risk:'green',note:'Retail distribution expanding.',hw:true},
+          {name:'Tyler Bennett',score:68,risk:'green',note:'Landscaping. Delegation improving.',hw:true},
+          {name:'Carlos Vasquez',score:65,risk:'yellow',note:'2nd restaurant. Marketing gap.',hw:false},
+          {name:'David Park',score:64,risk:'green',note:'Consulting. Steady.',hw:true},
+          {name:'Linh Nguyen',score:62,risk:'yellow',note:'Good digital. Financial support needed.',hw:false},
+          {name:'Will Thompson',score:60,risk:'green',note:'Digital agency. Growing.',hw:true},
+          {name:'Nina Patel',score:59,risk:'green',note:'Salon. Year 2.',hw:true},
+          {name:'Jordan Williams',score:58,risk:'green',note:'HR consulting. Building pipeline.',hw:true},
+          {name:'Marcus Johnson',score:57,risk:'green',note:'Plumbing. Scaling crew.',hw:true},
+          {name:'Sofia Reyes',score:56,risk:'green',note:'E-commerce. Strong marketing.',hw:true},
+          {name:'Keisha Brown',score:55,risk:'green',note:'Cleaning service. Building systems.',hw:true},
+          {name:'Oscar Rivera',score:54,risk:'green',note:'Electrical. Licensed.',hw:true},
+          {name:'Tasha Green',score:52,risk:'yellow',note:'Boutique. Inventory challenge.',hw:false},
+          {name:'Fatima Al-Said',score:48,risk:'yellow',note:'Strong vision. Early execution.',hw:false},
+          {name:'Mei Lin',score:45,risk:'yellow',note:'Bubble tea. Pre-revenue.',hw:false},
+          {name:'Ana Gutierrez',score:42,risk:'yellow',note:'Specialty food. Needs legal support.',hw:false},
+          {name:'Diego Morales',score:38,risk:'red',note:'Financial literacy gap.',hw:false},
+          {name:'Logan Montgomery',score:35,risk:'red',note:'AT RISK. Disengaging.',hw:false},
         ].map(p=>{
           const col=p.risk==='red'?'#ef4444':p.risk==='yellow'?'#f59e0b':'#10b981';
-          return `<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);font-size:11px;cursor:pointer" onclick="this.querySelector('.note').style.display=this.querySelector('.note').style.display==='none'?'block':'none'">
-            <div style="width:8px;height:8px;border-radius:50%;background:${col};flex-shrink:0"></div>
-            <div style="flex:1;font-weight:500">${p.name}</div>
-            <div style="font-family:monospace;font-size:11px;color:${col};min-width:32px;text-align:right">${p.score}%</div>
-            <div class="note" style="display:none;font-size:10px;color:var(--text-dim);width:100%;padding-top:4px">${p.note}</div>
-          </div>`;
+          return '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);font-size:11px;cursor:pointer" onclick="this.querySelector(\'.note\').style.display=this.querySelector(\'.note\').style.display===\'none\'?\'block\':\'none\'">'
+            +'<div style="width:8px;height:8px;border-radius:50%;background:'+col+';flex-shrink:0"></div>'
+            +'<div style="flex:1;font-weight:500">'+p.name+'</div>'
+            +(p.hw?'':'<div style="width:6px;height:6px;border-radius:50%;background:#8b5cf6;flex-shrink:0" title="Missing homework"></div>')
+            +'<div style="font-family:monospace;font-size:11px;color:'+col+';min-width:32px;text-align:right">'+p.score+'%</div>'
+            +'<div class="note" style="display:none;font-size:10px;color:var(--text-dim);width:100%;padding-top:4px">'+p.note+'</div>'
+            +'</div>';
         }).join('')}
       </div>
 
-      <h3 style="cursor:pointer;margin-top:14px" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none';this.querySelector('span').textContent=this.nextElementSibling.style.display==='none'?'&#9654;':'&#9660;'">Pipeline Status <span>&#9654;</span></h3>
+      <h3 style="cursor:pointer;margin-top:14px" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none';this.querySelector('span').textContent=this.nextElementSibling.style.display==='none'?'▶':'▼'">Pipeline Status <span>▶</span></h3>
       <div style="display:none">
         <p style="font-size:11px;color:var(--text-dim)">All five stages operational. Last run: 10 min ago.</p>
-        <div class="legend-row"><div class="legend-dot" style="background:#10b981"></div>Ingestion &mdash; online, polling Zoho every 60s</div>
-        <div class="legend-row"><div class="legend-dot" style="background:#10b981"></div>Rules Engine &mdash; 3 rules fired last run</div>
-        <div class="legend-row"><div class="legend-dot" style="background:#10b981"></div>LLM Enrichment &mdash; graded in 4.2s</div>
-        <div class="legend-row"><div class="legend-dot" style="background:#10b981"></div>Output Formatter &mdash; action plan generated</div>
-        <div class="legend-row"><div class="legend-dot" style="background:#10b981"></div>Dashboard &mdash; live</div>
+        <div class="legend-row"><div class="legend-dot" style="background:#10b981"></div>Ingestion — online, polling Zoho every 60s</div>
+        <div class="legend-row"><div class="legend-dot" style="background:#10b981"></div>Rules Engine — 3 rules fired last run</div>
+        <div class="legend-row"><div class="legend-dot" style="background:#10b981"></div>LLM Enrichment — graded in 4.2s</div>
+        <div class="legend-row"><div class="legend-dot" style="background:#10b981"></div>Output Formatter — action plan generated</div>
+        <div class="legend-row"><div class="legend-dot" style="background:#10b981"></div>Dashboard — live</div>
       </div>
 
-      <h3 style="cursor:pointer;margin-top:14px" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none';this.querySelector('span').textContent=this.nextElementSibling.style.display==='none'?'&#9654;':'&#9660;'">Time Reclaimed This Cohort <span>&#9654;</span></h3>
+      <h3 style="cursor:pointer;margin-top:14px" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none';this.querySelector('span').textContent=this.nextElementSibling.style.display==='none'?'▶':'▼'">Time Reclaimed This Cohort <span>▶</span></h3>
       <div style="display:none">
         <div class="dash-grid">
           <div class="dash-card"><div class="label">Assessment Review</div><div class="value" style="color:#34d399">75h</div><div class="sub">automated</div></div>
@@ -1561,31 +2212,50 @@ scenes.coaching={
     if(this.dashScreen)this.dashScreen.position.y=4+Math.sin(t*0.3)*0.1;
     if(this.mariaCard){this.mariaCard.rotation.y=Math.sin(t*0.3)*0.06;this.mariaCard.position.y=2+Math.sin(t*0.5)*0.12;}
     this.riskFlags.forEach((r,i)=>{r.greenDot.material.opacity=0.6+Math.sin(t*2+i)*0.4;r.orb.position.y=-5+Math.sin(t*0.8+i*0.5)*0.15;});
+    // Pulse selected card
+    if(this.selectedParticipant!==null&&this.cardObjects[this.selectedParticipant]){
+      const {group}=this.cardObjects[this.selectedParticipant];
+      const pulse=0.98+Math.sin(t*3)*0.02;
+      group.scale.setScalar(pulse);
+    }
   },
+
   onClick(raycaster){
-    // Click Maria's card to highlight her risks
-    if(this.mariaCard){
-      const meshes=[];this.mariaCard.traverse(m=>{if(m.isMesh)meshes.push(m);});
-      const hits=raycaster.intersectObjects(meshes);
+    // Check participant cards on dashboard
+    if(this.dashScreen){
+      const allCardMeshes=[];
+      this.cardObjects.forEach(({group},idx)=>{
+        group.children.forEach(m=>{if(m.isMesh){m.userData.cardIdx=idx;allCardMeshes.push(m);}});
+      });
+      // Transform raycaster to dashScreen local space
+      const hits=raycaster.intersectObjects(allCardMeshes);
       if(hits.length>0){
-        // Scroll panel to Maria's risk section and highlight it
-        const riskEl=document.querySelector('.detail-box');
-        if(riskEl)riskEl.style.boxShadow='0 0 12px rgba(236,72,153,0.5)';
-        setTimeout(()=>{if(riskEl)riskEl.style.boxShadow='none';},2000);
+        const idx=hits[0].object.userData.cardIdx;
+        if(idx!==undefined){
+          this._selectParticipant(idx);
+          return;
+        }
       }
     }
-    // Click pipeline orbs for status detail
+    // Click pipeline orbs
     const orbMeshes=this.riskFlags.map(r=>r.orb);
     const orbHits=raycaster.intersectObjects(orbMeshes);
     if(orbHits.length>0){
       const idx=orbMeshes.indexOf(orbHits[0].object);
       const names=['Ingestion','Rules Engine','LLM Enrichment','Output Formatter','Dashboard'];
-      const statuses=['Online — polling Zoho every 60s','3 rules fired on Maria\'s last submission','Graded homework in 4.2s (Claude Haiku)','Action plan + coach summary generated','Live — Heather\'s view auto-refreshed'];
-      const el=document.querySelector('.pipe-section');
-      if(el){el.innerHTML=`<div class="sub-label">${names[idx]} — Status</div><p style="font-size:12px;color:var(--green)">${statuses[idx]}</p>`;}
+      const statuses=['Online — polling Zoho Form every 60s, last payload 10 min ago','3 rules fired on Maria\'s last submission (R_tech_restaurant_pre_revenue_01, 02, 03)','Graded homework in 4.2s (Claude Haiku). Score written to dashboard.','Action plan + coach summary generated. Participant notified.','Live — Heather\'s view auto-refreshed. Andy and Carina have read-only access.'];
+      const pipeSection=panel.querySelector('.pipe-section');
+      if(pipeSection){pipeSection.innerHTML=`<div class="sub-label">${names[idx]} — Status</div><p style="font-size:12px;color:var(--green)">${statuses[idx]}</p>`;}
+    }
+    // Click Maria's floating card — jump to Maria's profile
+    if(this.mariaCard){
+      const meshes=[];this.mariaCard.traverse(m=>{if(m.isMesh)meshes.push(m);});
+      const hits=raycaster.intersectObjects(meshes);
+      if(hits.length>0){this._selectParticipant(0);return;}
     }
   }
 };
+
 // ============================================================
 // SCENE 6: Cohort Trajectories (3D scatter + arrows)
 // ============================================================
