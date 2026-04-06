@@ -1691,6 +1691,9 @@ init();
     }
   },{passive:true});
 
+  // Unified touchend: handle finger transition, tap detection, and cleanup
+  // (replaces both the old tap handler and the transition handler)
+
   c.addEventListener('touchmove',e=>{
     e.preventDefault();
     if(e.touches.length===1){
@@ -1734,8 +1737,12 @@ init();
   },{passive:false});
 
   c.addEventListener('touchend',e=>{
-    if(isTap&&e.changedTouches.length===1){
-      // Treat as a click — fire raycaster
+    // When going from 2 fingers to 1, sync lx/ly to remaining finger to prevent snap
+    if(e.touches.length===1){
+      lx=e.touches[0].clientX;ly=e.touches[0].clientY;
+    }
+    // Tap detection: if single finger didn't move much, treat as click
+    if(isTap&&e.touches.length===0&&e.changedTouches.length===1){
       const t=e.changedTouches[0];
       const dist=Math.hypot(t.clientX-startX,t.clientY-startY);
       if(dist<10&&currentScene&&currentScene.onClick){
@@ -1744,7 +1751,6 @@ init();
         mouse.y=-((t.clientY-rect.top)/rect.height)*2+1;
         raycaster.setFromCamera(mouse,camera);
         currentScene.onClick(raycaster);
-        // On mobile, show detail in canvas overlay instead of hidden panel
         setTimeout(()=>{
           const detail=document.getElementById('detail-slot')||document.getElementById('hat-detail');
           if(detail&&detail.innerHTML.trim()&&window.innerWidth<=900){
